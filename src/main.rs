@@ -170,8 +170,10 @@ impl Piece {
                     if new_position < 0 || new_position > 63 {
                         continue;
                     }
-                    else if board[new_position as usize] != Option::None {
-                        continue;
+                    else if let Some(piece) = &board[new_position as usize] {
+                        if piece.color == self.color {
+                            continue;
+                        }
                     }
                     else if (movement == 10 || movement == 6 || movement == -10 || movement == -6) && (new_position % 8 - position as i8 % 8).abs() != 2 {
                         continue;

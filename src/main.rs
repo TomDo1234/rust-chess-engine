@@ -193,6 +193,9 @@ impl Piece {
                         if new_position > 63 || new_position < 0 {
                             break;
                         }
+                        if (((position as i8 + movement) % 8) - (position % 8) as i8).abs() != i {
+                            break;
+                        }
                         if let Some(piece) = &board[new_position as usize] {
                             if piece.color != self.color {
                                 available_moves.push(movement);
@@ -358,8 +361,8 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,current_valu
                     
                     if recursion_level != current_recursion {
                         value -= calculate_position(board, if whos_move == Color::White { Color::Black } else { Color::White },total_val,recursion_level, current_recursion + 1);
-                        if current_recursion == 1 { println!("{value} {:?} {:?}",piece.piece_type,movement);}
                     }
+                    println!("{value} {:?} {:?}",piece.piece_type,movement);
                     
                     if value > max {
                         max = value;
@@ -382,6 +385,6 @@ fn main() {
 
     let (board,color_to_play) = parse_fen("rnbqkbnr/p1pp1pp1/1p5p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR" /*&fen_input.trim() */);
     //let (board2,color_to_play2) = parse_fen("3k4/5ppp/p7/P7/5b2/7P/1r3PP1/3R2K1");
-    println!("{}",calculate_position(&board,color_to_play.clone(),0,4,1));
+    println!("{}",calculate_position(&board,color_to_play.clone(),0,1,1));
     //println!("{}",calculate_position(&board2,color_to_play2.clone(),0,4,1));
 }

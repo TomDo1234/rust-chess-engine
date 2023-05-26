@@ -217,6 +217,9 @@ impl Piece {
                         if new_position > 63 || new_position < 0 {
                             break;
                         }
+                        if direction.abs() == 1 && (new_position / 8) != (position / 8) as i8 {
+                            break;
+                        }
                         if let Some(piece) = &board[new_position as usize] {
                             if piece.color != self.color {
                                 available_moves.push(movement);
@@ -383,8 +386,8 @@ fn main() {
     // io::stdin().read_line(&mut fen_input)
     //     .expect("Failed to read line");
 
-    let (board,color_to_play) = parse_fen("rnbqkbnr/p1pp1pp1/1p5p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR" /*&fen_input.trim() */);
+    let (board,color_to_play) = parse_fen("rnbqkbnr/pppppppp/8/8/P7/2R5/1PPPPPPP/1NBQKBNR" /*&fen_input.trim() */);
     //let (board2,color_to_play2) = parse_fen("3k4/5ppp/p7/P7/5b2/7P/1r3PP1/3R2K1");
-    println!("{}",calculate_position(&board,color_to_play.clone(),0,1,1));
+    println!("{}",calculate_position(&board,color_to_play.clone(),4,1,1));
     //println!("{}",calculate_position(&board2,color_to_play2.clone(),0,4,1));
 }

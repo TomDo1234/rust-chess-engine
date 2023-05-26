@@ -187,7 +187,7 @@ impl Piece {
                 let mut available_moves: Vec<i8> = vec![];
                 let directions: [i8;4] = [-9,9,7,-7];
                 for direction in directions {
-                    for i in 0..9 {
+                    for i in 1..8 {
                         let movement: i8 = direction * i;
                         let new_position = position as i8 + movement;
                         if new_position > 63 || new_position < 0 {
@@ -208,7 +208,7 @@ impl Piece {
                 let mut available_moves: Vec<i8> = vec![];
                 let directions: [i8;4] = [-1,1,8,-8];
                 for direction in directions {
-                    for i in 0..8 {
+                    for i in 1..8 {
                         let movement: i8 = direction * i;
                         let new_position = position as i8 + movement;
                         if new_position > 63 || new_position < 0 {
@@ -229,7 +229,7 @@ impl Piece {
                 let mut available_moves: Vec<i8> = vec![];
                 let directions: [i8;8] = [-1,1,8,-8,-9,9,7,-7];
                 for direction in directions {
-                    for i in 0..8 {
+                    for i in 1..8 {
                         let movement: i8 = direction * i;
                         let new_position = position as i8 + movement;
                         if new_position > 63 || new_position < 0 {
@@ -268,47 +268,38 @@ impl Piece {
         Ok(moves)
     }
 
-    fn do_move(&self,board: &[Option<Piece>; 64],movement: i8) -> Option<u8> {
+    fn do_move(&self,board: &[Option<Piece>; 64],movement: i8) -> Result<u8,ChessEngineError> {
         let position = board.iter().position(|r| match r {
             None => false,
-            Some(r) => r == self
+            Some(r) => ptr::eq(r,self)
         });
 
         let position = match position {
-            None => return None,
+            None => return Err(ChessEngineError {message: "Piece not in board".to_owned()}),
             Some(index) => index
         };
 
-        let piece_there =  match board.get((position as i8 + movement) as usize) {
-            None => return None,
-            Some(square) => square,
+        let piece_there = match &board[(position as i8 + movement) as usize] {
+            None => return Ok(0),
+            Some(piece) => piece,
         };
 
-        match piece_there {
-            None => {
-                if self.piece_type == PieceType::Pawn && ![8,9,-8,-9].contains(&movement) {
-                    None
-                }
-                else {
-                    Some(0)
-                }
-            },
-            Some(piece) => Some(piece.value)
-        }
+        Ok(piece_there.value)
     }
 }
 
 
 fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     let mut board: [Option<Piece>; 64] = [(); 64].map(|_| None);
-
+    let mut offset = 0;
     for (rank, fen_rank) in fen.split('/').enumerate() {
         for (index,c) in fen_rank.chars().enumerate() {
             match c {
                 '1'..='8' => {
                     for i in 0..c.to_digit(10).unwrap() {
-                        board[rank * 8 + index + i as usize] = Option::None;
+                        board[rank * 8 + offset + index + i as usize] = Option::None;
                     }
+                    offset += c.to_digit(10).unwrap() as usize - 1;
                 },
                 _ => {
                     let piece: Option<Piece> = if c.is_uppercase() { 
@@ -334,16 +325,18 @@ fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
                         }
                     };
                     
-                    board[rank * 8 + index] = piece;
+                    board[rank * 8 + offset + index] = piece;
                 }
             }
         }
+        offset = 0
     }
 
     (board,Color::White)
 }
 
-fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i8 {
+fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i32 {
+    let mut max: i32 = -127;
     for square in board {
         let piece = match square {
             Some(piece) => piece,
@@ -351,10 +344,20 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i8 {
         };
 
         if piece.color == whos_move {
-            println!("{:?} {:?}",piece.piece_type,piece.get_moves(board));
+            if let Ok(moves) = piece.get_moves(board) {
+                for movement in moves {
+                    let value = match piece.do_move(board, movement) {
+                        Ok(value) => value,
+                        Err(_) => 0
+                    };
+                    if value as i32 > max { 
+                        max = value as i32;
+                    }
+                }
+            }
         }
     }
-    return 0;
+    return max;
 }
 
 fn main() { 
@@ -365,7 +368,6 @@ fn main() {
     // io::stdin().read_line(&mut fen_input)
     //     .expect("Failed to read line");
 
-    let (board,color_to_play) = parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" /*&fen_input.trim() */);
-    
-    calculate_position(&board,color_to_play);
+    let (board,color_to_play) = parse_fen("3k4/5ppp/p7/P7/5b2/7P/1r3PP1/3R2K1" /*&fen_input.trim() */);
+    println!("{}",calculate_position(&board,color_to_play));
 }

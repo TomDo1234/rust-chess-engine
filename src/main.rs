@@ -1,12 +1,12 @@
-#[derive(Clone)]
-#[derive(PartialEq)]
+use std::io;
+
+#[derive(Clone,PartialEq,Debug)]
 enum Color {
     White,
     Black,
 }
 
-#[derive(Clone)]
-#[derive(PartialEq)]
+#[derive(Clone,PartialEq,Debug)]
 enum PieceType {
     Pawn,
     Knight,
@@ -16,8 +16,7 @@ enum PieceType {
     King
 }
 
-#[derive(Clone)]
-#[derive(PartialEq)]
+#[derive(Clone,PartialEq,Debug)]
 struct Piece {
     color: Color,
     piece_type: PieceType,
@@ -79,104 +78,149 @@ impl Piece {
     }
 }
 
+
+static WHITE_PAWN: Piece = Piece {
+    color: Color::White,
+    piece_type: PieceType::Pawn,
+    value: 1,
+    has_moved: false
+};
+
+static WHITE_KNIGHT: Piece = Piece {
+    color: Color::White,
+    piece_type: PieceType::Knight,
+    value: 3,
+    has_moved: false
+};
+
+static WHITE_BISHOP: Piece = Piece {
+    color: Color::White,
+    piece_type: PieceType::Bishop,
+    value: 3,
+    has_moved: false
+};
+
+static WHITE_ROOK: Piece = Piece {
+    color: Color::White,
+    piece_type: PieceType::Rook,
+    value: 5,
+    has_moved: false
+};
+
+static WHITE_QUEEN: Piece = Piece {
+    color: Color::White,
+    piece_type: PieceType::Queen,
+    value: 9,
+    has_moved: false
+};
+
+static WHITE_KING: Piece = Piece {
+    color: Color::White,
+    piece_type: PieceType::King,
+    value: 255,
+    has_moved: false
+};
+
+static BLACK_PAWN: Piece = Piece {
+    color: Color::Black,
+    piece_type: PieceType::Pawn,
+    value: 1,
+    has_moved: false
+};
+
+static BLACK_KNIGHT: Piece = Piece {
+    color: Color::Black,
+    piece_type: PieceType::Knight,
+    value: 3,
+    has_moved: false
+};
+
+static BLACK_BISHOP: Piece = Piece {
+    color: Color::Black,
+    piece_type: PieceType::Bishop,
+    value: 3,
+    has_moved: false
+};
+
+static BLACK_ROOK: Piece = Piece {
+    color: Color::Black,
+    piece_type: PieceType::Rook,
+    value: 5,
+    has_moved: false
+};
+
+static BLACK_QUEEN: Piece = Piece {
+    color: Color::Black,
+    piece_type: PieceType::Queen,
+    value: 9,
+    has_moved: false
+};
+
+static BLACK_KING: Piece = Piece {
+    color: Color::Black,
+    piece_type: PieceType::King,
+    value: 255,
+    has_moved: false
+};
+
+fn parse_fen(fen: &str) -> [Option<Piece>; 64] {
+    let mut board: [Option<Piece>; 64] = [(); 64].map(|_| None);
+
+    for (rank, fen_rank) in fen.split('/').enumerate() {
+        for (index,c) in fen_rank.chars().enumerate() {
+            match c {
+                '1'..='8' => {
+                    for i in 0..c.to_digit(10).unwrap() {
+                        board[rank * 8 + index + i as usize] = Option::None;
+                    }
+                },
+                _ => {
+                    let piece: Option<Piece> = if c.is_uppercase() { 
+                        match c.to_ascii_lowercase() {
+                            'p' => Some(WHITE_PAWN.clone()),
+                            'r' => Some(WHITE_ROOK.clone()),
+                            'n' => Some(WHITE_KNIGHT.clone()),
+                            'b' => Some(WHITE_BISHOP.clone()),
+                            'q' => Some(WHITE_QUEEN.clone()),
+                            'k' => Some(WHITE_KING.clone()),
+                            _ => panic!("Invalid character in FEN string {c}"),
+                        }
+                    }
+                    else { 
+                        match c.to_ascii_lowercase() {
+                            'p' => Some(BLACK_PAWN.clone()),
+                            'r' => Some(BLACK_ROOK.clone()),
+                            'n' => Some(BLACK_KNIGHT.clone()),
+                            'b' => Some(BLACK_BISHOP.clone()),
+                            'q' => Some(BLACK_QUEEN.clone()),
+                            'k' => Some(BLACK_KING.clone()),
+                            _ => panic!("Invalid character in FEN string {c}"),
+                        }
+                    };
+                    
+                    board[rank * 8 + index] = piece;
+                }
+            }
+        }
+    }
+
+    board
+}
+
 fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i8 {
     return 0;
 }
 
-fn main() {
-    let white_pawn = Piece {
-        color: Color::White,
-        piece_type: PieceType::Pawn,
-        value: 1,
-        has_moved: false
-    };
+fn main() { 
+    let mut fen_input = String::new();
 
-    let white_knight = Piece {
-        color: Color::White,
-        piece_type: PieceType::Knight,
-        value: 3,
-        has_moved: false
-    };
+    println!("Enter FEN:");
+    io::stdin().read_line(&mut fen_input)
+        .expect("Failed to read line");
 
-    let white_bishop = Piece {
-        color: Color::White,
-        piece_type: PieceType::Bishop,
-        value: 3,
-        has_moved: false
-    };
-
-    let white_rook = Piece {
-        color: Color::White,
-        piece_type: PieceType::Rook,
-        value: 5,
-        has_moved: false
-    };
-
-    let white_queen = Piece {
-        color: Color::White,
-        piece_type: PieceType::Queen,
-        value: 9,
-        has_moved: false
-    };
-
-    let white_king = Piece {
-        color: Color::White,
-        piece_type: PieceType::King,
-        value: 255,
-        has_moved: false
-    };
-
-    let black_pawn = Piece {
-        color: Color::Black,
-        piece_type: PieceType::Pawn,
-        value: 1,
-        has_moved: false
-    };
-
-    let black_knight = Piece {
-        color: Color::Black,
-        piece_type: PieceType::Knight,
-        value: 3,
-        has_moved: false
-    };
-
-    let black_bishop = Piece {
-        color: Color::Black,
-        piece_type: PieceType::Bishop,
-        value: 3,
-        has_moved: false
-    };
-
-    let black_rook = Piece {
-        color: Color::Black,
-        piece_type: PieceType::Rook,
-        value: 5,
-        has_moved: false
-    };
-
-    let black_queen = Piece {
-        color: Color::Black,
-        piece_type: PieceType::Queen,
-        value: 9,
-        has_moved: false
-    };
-
-    let black_king = Piece {
-        color: Color::Black,
-        piece_type: PieceType::King,
-        value: 255,
-        has_moved: false
-    };
-
-    let board: [Option<Piece>; 64] = [Some(black_rook.clone()),Some(black_knight.clone()),Some(black_bishop.clone()),Some(black_queen),Some(black_king),Some(black_bishop.clone()),Some(black_knight.clone()),Some(black_rook.clone()),
-                                     Some(black_pawn.clone()),Some(black_pawn.clone()),Some(black_pawn.clone()),Some(black_pawn.clone()),Some(black_pawn.clone()),Some(black_pawn.clone()),Some(black_pawn.clone()),Some(black_pawn.clone()),
-                                     Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,
-                                     Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,
-                                     Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,
-                                     Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,
-                                     Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),
-                                     Some(white_rook.clone()),Some(white_knight.clone()),Some(white_bishop.clone()),Some(white_queen),Some(white_king),Some(white_bishop.clone()),Some(white_knight.clone()),Some(white_rook.clone())];
-
+    let board: [Option<Piece>; 64] = parse_fen(&fen_input.trim());
     
     calculate_position(&board,Color::White);
+
+    println!("{:?}",board);
 }

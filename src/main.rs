@@ -204,10 +204,66 @@ impl Piece {
                 }
                 available_moves
             },
-            PieceType::Rook => vec![-8, -16, -24, -32, -40, -48, -56, -64, -1, -2, -3, -4, -5, -6, -7, -8, 1, 2, 3, 4, 5, 6, 7, 8, 8, 16, 24, 32, 40, 48, 56, 64],
-            PieceType::Queen => vec![-8, -16, -24, -32, -40, -48, -56, -64, -1, -2, -3, -4, -5, -6, -7, -8, 1, 2, 3, 4, 5, 6, 7, 8, 8, 16, 24, 32, 40, 48, 56, 64
-            ,-9, -18, -27, -36, -45, -54, -63, -72, -7, -14, -21, -28, -35, -42, -49, -56, 7, 14, 21, 28, 35, 42, 49, 56, 9, 18, 27, 36, 45, 54, 63, 72],
-            PieceType::King => vec![1,-1,9,-9,8,-8,7,-7]
+            PieceType::Rook => {
+                let mut available_moves: Vec<i8> = vec![];
+                let directions: [i8;4] = [-1,1,8,-8];
+                for direction in directions {
+                    for i in 0..8 {
+                        let movement: i8 = direction * i;
+                        let new_position = position as i8 + movement;
+                        if new_position > 63 || new_position < 0 {
+                            break;
+                        }
+                        if let Some(piece) = &board[new_position as usize] {
+                            if piece.color != self.color {
+                                available_moves.push(movement);
+                            }
+                            break;
+                        }
+                        available_moves.push(movement);
+                    }
+                }
+                available_moves
+            },
+            PieceType::Queen => {
+                let mut available_moves: Vec<i8> = vec![];
+                let directions: [i8;8] = [-1,1,8,-8,-9,9,7,-7];
+                for direction in directions {
+                    for i in 0..8 {
+                        let movement: i8 = direction * i;
+                        let new_position = position as i8 + movement;
+                        if new_position > 63 || new_position < 0 {
+                            break;
+                        }
+                        if let Some(piece) = &board[new_position as usize] {
+                            if piece.color != self.color {
+                                available_moves.push(movement);
+                            }
+                            break;
+                        }
+                        available_moves.push(movement);
+                    }
+                }
+                available_moves
+            },
+            PieceType::King => {
+                let mut available_moves: Vec<i8> = vec![];
+                let directions: [i8;8] = [-1,1,8,-8,-9,9,7,-7];
+                for movement in directions {
+                    let new_position = position as i8 + movement;
+                    if new_position > 63 || new_position < 0 {
+                        break;
+                    }
+                    if let Some(piece) = &board[new_position as usize] {
+                        if piece.color != self.color {
+                            available_moves.push(movement);
+                        }
+                        break;
+                    }
+                    available_moves.push(movement);
+                }
+                available_moves
+            }
         };
         Ok(moves)
     }

@@ -32,7 +32,6 @@ impl Piece {
                     Color::White => -1,
                     Color::Black => 1
                 };
-
                 if self.has_moved {
                     return vec![8,9,7].into_iter().map(|movement| movement * direction).collect()
                 }
@@ -40,10 +39,11 @@ impl Piece {
                     return vec![8,16,9,7].into_iter().map(|movement| movement * direction).collect()
                 }
             },
-            PieceType::Knight => vec![-8,-16,-9,-7],
-            PieceType::Bishop => vec![-8,-16,-9,-7],
-            PieceType::Rook => vec![-8,-16,-9,-7],
-            PieceType::Queen => vec![-8,-16,-9,-7],
+            PieceType::Knight => vec![-17, -15, -10, -6, 6, 10, 15, 17],
+            PieceType::Bishop => vec![-9, -18, -27, -36, -45, -54, -63, -72, -7, -14, -21, -28, -35, -42, -49, -56, 7, 14, 21, 28, 35, 42, 49, 56, 9, 18, 27, 36, 45, 54, 63, 72],
+            PieceType::Rook => vec![-8, -16, -24, -32, -40, -48, -56, -64, -1, -2, -3, -4, -5, -6, -7, -8, 1, 2, 3, 4, 5, 6, 7, 8, 8, 16, 24, 32, 40, 48, 56, 64],
+            PieceType::Queen => vec![-8, -16, -24, -32, -40, -48, -56, -64, -1, -2, -3, -4, -5, -6, -7, -8, 1, 2, 3, 4, 5, 6, 7, 8, 8, 16, 24, 32, 40, 48, 56, 64
+            ,-9, -18, -27, -36, -45, -54, -63, -72, -7, -14, -21, -28, -35, -42, -49, -56, 7, 14, 21, 28, 35, 42, 49, 56, 9, 18, 27, 36, 45, 54, 63, 72],
             PieceType::King => vec![1,-1,9,-9,8,-8,7,-7]
         }
     }
@@ -163,7 +163,7 @@ static BLACK_KING: Piece = Piece {
     has_moved: false
 };
 
-fn parse_fen(fen: &str) -> [Option<Piece>; 64] {
+fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     let mut board: [Option<Piece>; 64] = [(); 64].map(|_| None);
 
     for (rank, fen_rank) in fen.split('/').enumerate() {
@@ -204,10 +204,20 @@ fn parse_fen(fen: &str) -> [Option<Piece>; 64] {
         }
     }
 
-    board
+    (board,Color::White)
 }
 
 fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i8 {
+    for square in board {
+        let piece = match square {
+            Some(piece) => piece,
+            None => continue
+        };
+
+        if piece.color == whos_move {
+
+        }
+    }
     return 0;
 }
 
@@ -218,9 +228,9 @@ fn main() {
     io::stdin().read_line(&mut fen_input)
         .expect("Failed to read line");
 
-    let board: [Option<Piece>; 64] = parse_fen(&fen_input.trim());
+    let (board,color_to_play) = parse_fen(&fen_input.trim());
     
-    calculate_position(&board,Color::White);
+    calculate_position(&board,color_to_play);
 
     println!("{:?}",board);
 }

@@ -144,11 +144,11 @@ impl Piece {
                 };
 
                 let mut available_moves: Vec<i8> = vec![];
-                if !self.has_moved && board[(position as i8 + 16 * direction) as usize] == Option::None {
-                    available_moves.push(16 * direction);
-                }
                 if board[(position as i8 + 8 * direction) as usize] == Option::None {
                     available_moves.push(8 * direction);
+                    if !self.has_moved && board[(position as i8 + 16 * direction) as usize] == Option::None {
+                        available_moves.push(16 * direction);
+                    }
                 }
                 if let Some(piece) = &board[(position as i8 + 9 * direction) as usize] {
                     if piece.color != self.color {
@@ -191,6 +191,9 @@ impl Piece {
                         let movement: i8 = direction * i;
                         let new_position = position as i8 + movement;
                         if new_position > 63 || new_position < 0 {
+                            break;
+                        }
+                        if (((position as i8 + movement) % 8) - (position % 8) as i8).abs() != i {
                             break;
                         }
                         if let Some(piece) = &board[new_position as usize] {
@@ -252,13 +255,13 @@ impl Piece {
                 for movement in directions {
                     let new_position = position as i8 + movement;
                     if new_position > 63 || new_position < 0 {
-                        break;
+                        continue;
                     }
                     if let Some(piece) = &board[new_position as usize] {
                         if piece.color != self.color {
                             available_moves.push(movement);
                         }
-                        break;
+                        continue;
                     }
                     available_moves.push(movement);
                 }
@@ -335,8 +338,9 @@ fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     (board,Color::White)
 }
 
-fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i32 {
+fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,current_value: i32,recursion_level: u8,current_recursion: u8) -> i32 {
     let mut max: i32 = -127;
+    let mut total_val = -current_value;
     for square in board {
         let piece = match square {
             Some(piece) => piece,
@@ -346,18 +350,29 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i32 {
         if piece.color == whos_move {
             if let Ok(moves) = piece.get_moves(board) {
                 for movement in moves {
-                    let value = match piece.do_move(board, movement) {
-                        Ok(value) => value,
+                    let mut value: i32 =  match piece.do_move(board, movement) {
+                        Ok(value) => value as i32,
                         Err(_) => 0
                     };
-                    if value as i32 > max { 
-                        max = value as i32;
+
+                    if value == 255 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
+                        return 255
                     }
+                    
+                    if recursion_level != current_recursion {
+                        value -= calculate_position(board, if whos_move == Color::White { Color::Black } else { Color::White },total_val,recursion_level, current_recursion + 1);
+                    }
+                    println!("{value} {:?} {:?}",piece.piece_type,movement);
+                    
+                    if value > max {
+                        max = value;
+                        total_val = value - current_value;
+                    };
                 }
             }
         }
     }
-    return max;
+    return total_val;
 }
 
 fn main() { 
@@ -369,5 +384,5 @@ fn main() {
         .expect("Failed to read line");
 
     let (board,color_to_play) = parse_fen(&fen_input /*&fen_input.trim() */);
-    println!("{}",calculate_position(&board,color_to_play));
+    println!("{}",calculate_position(&board,color_to_play,0,1,1));
 }

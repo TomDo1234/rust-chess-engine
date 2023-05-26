@@ -347,9 +347,8 @@ fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     (board,Color::White)
 }
 
-fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,current_value: i32,recursion_level: u8,current_recursion: u8) -> i32 {
+fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8) -> i32 {
     let mut max: i32 = -127;
-    let mut total_val = -current_value;
     for square in board {
         let piece = match square {
             Some(piece) => piece,
@@ -363,25 +362,23 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,current_valu
                         Ok(value) => value as i32,
                         Err(_) => 0
                     };
-
+                    
                     if value == 255 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
                         return 255
                     }
                     
                     if recursion_level != current_recursion {
-                        value -= calculate_position(board, if whos_move == Color::White { Color::Black } else { Color::White },total_val,recursion_level, current_recursion + 1);
+                        value -= calculate_position(board, if whos_move == Color::White { Color::Black } else { Color::White },recursion_level, current_recursion + 1);
                     }
-                    println!("{value} {:?} {:?}",piece.piece_type,movement);
                     
                     if value > max {
                         max = value;
-                        total_val = value - current_value;
                     };
                 }
             }
         }
     }
-    return total_val;
+    return max;
 }
 
 fn main() { 
@@ -393,5 +390,5 @@ fn main() {
         .expect("Failed to read line");
 
     let (board,color_to_play) = parse_fen(&fen_input /*&fen_input.trim() */);
-    println!("{}",calculate_position(&board,color_to_play,0,1,1));
+    println!("{}",calculate_position(&board,color_to_play,1,1));
 }

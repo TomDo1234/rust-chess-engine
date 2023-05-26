@@ -1,4 +1,5 @@
-use std::io;
+use core::fmt;
+use std::{io, error::Error};
 
 #[derive(Clone,PartialEq,Debug)]
 enum Color {
@@ -24,28 +25,65 @@ struct Piece {
     has_moved: bool
 }
 
+#[derive(Debug)]
+struct ChessEngineError {
+    message: String
+}
+
+impl fmt::Display for ChessEngineError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Chess Engine Error: {}", self.message)
+    }
+}
+
+impl Error for ChessEngineError {}
+
 impl Piece {
-    fn get_moves(&self) -> Vec<i8> {
-        match self.piece_type {
+    fn get_moves(&self,board: &[Option<Piece> ; 64]) -> Result<Vec<i8>,ChessEngineError> {
+        let position: Option<usize> = board.iter().position(|r| match r {
+            None => false,
+            Some(r) => r == self
+        });
+
+        let position = match position {
+            None => return Err(ChessEngineError {message: "Piece not in board".to_owned()}),
+            Some(index) => index
+        };
+
+        let moves = match self.piece_type {
             PieceType::Pawn => {
                 let direction = match self.color {
                     Color::White => -1,
                     Color::Black => 1
                 };
                 if self.has_moved {
-                    return vec![8,9,7].into_iter().map(|movement| movement * direction).collect()
+                    vec![8,9,7].into_iter().map(|movement| movement * direction).collect()
                 }
                 else {
-                    return vec![8,16,9,7].into_iter().map(|movement| movement * direction).collect()
+                    vec![8,16,9,7].into_iter().map(|movement| movement * direction).collect()
                 }
             },
-            PieceType::Knight => vec![-17, -15, -10, -6, 6, 10, 15, 17],
+            PieceType::Knight => {
+                let moves: Vec<i8> = vec![-17, -15, -10, -6, 6, 10, 15, 17];
+                let mut available_moves: Vec<i8> = vec![];
+                for movement in moves {
+                    if (movement == 10 || movement == 6 || movement == -10 || movement == -6) && (position as i8 + movement) / 8 - position as i8 / 8 != 1 {
+                        continue;
+                    }
+                    else if (movement == 17 || movement == 15 || movement == -15 || movement == -17) && (position as i8 + movement) / 8 - position as i8 / 8 != 2 {
+                        continue;
+                    }
+                    available_moves.push(movement);
+                }
+                available_moves
+            }
             PieceType::Bishop => vec![-9, -18, -27, -36, -45, -54, -63, -72, -7, -14, -21, -28, -35, -42, -49, -56, 7, 14, 21, 28, 35, 42, 49, 56, 9, 18, 27, 36, 45, 54, 63, 72],
             PieceType::Rook => vec![-8, -16, -24, -32, -40, -48, -56, -64, -1, -2, -3, -4, -5, -6, -7, -8, 1, 2, 3, 4, 5, 6, 7, 8, 8, 16, 24, 32, 40, 48, 56, 64],
             PieceType::Queen => vec![-8, -16, -24, -32, -40, -48, -56, -64, -1, -2, -3, -4, -5, -6, -7, -8, 1, 2, 3, 4, 5, 6, 7, 8, 8, 16, 24, 32, 40, 48, 56, 64
             ,-9, -18, -27, -36, -45, -54, -63, -72, -7, -14, -21, -28, -35, -42, -49, -56, 7, 14, 21, 28, 35, 42, 49, 56, 9, 18, 27, 36, 45, 54, 63, 72],
             PieceType::King => vec![1,-1,9,-9,8,-8,7,-7]
-        }
+        };
+        Ok(moves)
     }
 
     fn do_move(&self,board: &[Option<Piece>; 64],movement: i8) -> Option<u8> {

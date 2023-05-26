@@ -66,7 +66,14 @@ impl Piece {
         };
 
         match piece_there {
-            None => Some(0),
+            None => {
+                if self.piece_type == PieceType::Pawn && ![8,9,-8,-9].contains(&movement) {
+                    None
+                }
+                else {
+                    Some(0)
+                }
+            },
             Some(piece) => Some(piece.value)
         }
     }
@@ -165,4 +172,5 @@ fn main() {
                                      Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,Option::None,
                                      Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),
                                      Some(white_rook.clone()),Some(white_knight.clone()),Some(white_bishop.clone()),Some(white_queen),Some(white_king),Some(white_bishop.clone()),Some(white_knight.clone()),Some(white_rook.clone())];
+
 }

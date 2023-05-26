@@ -364,10 +364,10 @@ fn main() {
     let mut fen_input = String::new();
     //rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR starting position
 
-    // println!("Enter FEN:");
-    // io::stdin().read_line(&mut fen_input)
-    //     .expect("Failed to read line");
+    println!("Enter FEN:");
+    io::stdin().read_line(&mut fen_input)
+        .expect("Failed to read line");
 
-    let (board,color_to_play) = parse_fen("3k4/5ppp/p7/P7/5b2/7P/1r3PP1/3R2K1" /*&fen_input.trim() */);
+    let (board,color_to_play) = parse_fen(&fen_input /*&fen_input.trim() */);
     println!("{}",calculate_position(&board,color_to_play));
 }

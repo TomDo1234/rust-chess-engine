@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{io, error::Error};
+use std::{io, error::Error,ptr};
 
 #[derive(Clone,PartialEq,Debug)]
 enum Color {
@@ -42,7 +42,7 @@ impl Piece {
     fn get_moves(&self,board: &[Option<Piece> ; 64]) -> Result<Vec<i8>,ChessEngineError> {
         let position: Option<usize> = board.iter().position(|r| match r {
             None => false,
-            Some(r) => r == self
+            Some(r) => ptr::eq(r,self) //checking if the actual memory address is equal
         });
 
         let position = match position {
@@ -67,10 +67,17 @@ impl Piece {
                 let moves: Vec<i8> = vec![-17, -15, -10, -6, 6, 10, 15, 17];
                 let mut available_moves: Vec<i8> = vec![];
                 for movement in moves {
-                    if (movement == 10 || movement == 6 || movement == -10 || movement == -6) && (position as i8 + movement) / 8 - position as i8 / 8 != 1 {
+                    let new_position = position as i8 + movement;
+                    if new_position < 0 || new_position > 63 {
                         continue;
                     }
-                    else if (movement == 17 || movement == 15 || movement == -15 || movement == -17) && (position as i8 + movement) / 8 - position as i8 / 8 != 2 {
+                    else if board[new_position as usize] != Option::None {
+                        continue;
+                    }
+                    else if (movement == 10 || movement == 6 || movement == -10 || movement == -6) && (new_position % 8 - position as i8 % 8).abs() != 2 {
+                        continue;
+                    }
+                    else if (movement == 17 || movement == 15 || movement == -15 || movement == -17) && (new_position % 8 - position as i8 % 8).abs() != 1 {
                         continue;
                     }
                     available_moves.push(movement);
@@ -253,7 +260,9 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i8 {
         };
 
         if piece.color == whos_move {
-
+            if piece.piece_type == PieceType::Knight {
+                println!("{:?} {:?}",piece.piece_type,piece.get_moves(board));
+            }
         }
     }
     return 0;
@@ -261,14 +270,13 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i8 {
 
 fn main() { 
     let mut fen_input = String::new();
+    //rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR starting position
 
-    println!("Enter FEN:");
-    io::stdin().read_line(&mut fen_input)
-        .expect("Failed to read line");
+    // println!("Enter FEN:");
+    // io::stdin().read_line(&mut fen_input)
+    //     .expect("Failed to read line");
 
-    let (board,color_to_play) = parse_fen(&fen_input.trim());
+    let (board,color_to_play) = parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR" /*&fen_input.trim() */);
     
     calculate_position(&board,color_to_play);
-
-    println!("{:?}",board);
 }

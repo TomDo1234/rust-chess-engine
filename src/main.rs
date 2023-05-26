@@ -52,16 +52,29 @@ impl Piece {
 
         let moves = match self.piece_type {
             PieceType::Pawn => {
-                let direction = match self.color {
+                let direction: i8 = match self.color {
                     Color::White => -1,
                     Color::Black => 1
                 };
-                if self.has_moved {
-                    vec![8,9,7].into_iter().map(|movement| movement * direction).collect()
+
+                let mut available_moves: Vec<i8> = vec![];
+                if !self.has_moved && board[(position as i8 + 16 * direction) as usize] == Option::None {
+                    available_moves.push(16 * direction);
                 }
-                else {
-                    vec![8,16,9,7].into_iter().map(|movement| movement * direction).collect()
+                if board[(position as i8 + 8 * direction) as usize] == Option::None {
+                    available_moves.push(8 * direction);
                 }
+                if let Some(piece) = &board[(position as i8 + 9 * direction) as usize] {
+                    if piece.color != self.color {
+                        available_moves.push(9 * direction);
+                    }
+                }
+                if let Some(piece) = &board[(position as i8 + 7 * direction) as usize] {
+                    if piece.color != self.color {
+                        available_moves.push(7 * direction);
+                    }
+                }
+                available_moves
             },
             PieceType::Knight => {
                 let moves: Vec<i8> = vec![-17, -15, -10, -6, 6, 10, 15, 17];
@@ -260,9 +273,7 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i8 {
         };
 
         if piece.color == whos_move {
-            if piece.piece_type == PieceType::Knight {
-                println!("{:?} {:?}",piece.piece_type,piece.get_moves(board));
-            }
+            println!("{:?} {:?}",piece.piece_type,piece.get_moves(board));
         }
     }
     return 0;

@@ -79,6 +79,10 @@ impl Piece {
     }
 }
 
+fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i8 {
+    return 0;
+}
+
 fn main() {
     let white_pawn = Piece {
         color: Color::White,
@@ -90,35 +94,35 @@ fn main() {
     let white_knight = Piece {
         color: Color::White,
         piece_type: PieceType::Knight,
-        value: 1,
+        value: 3,
         has_moved: false
     };
 
     let white_bishop = Piece {
         color: Color::White,
         piece_type: PieceType::Bishop,
-        value: 1,
+        value: 3,
         has_moved: false
     };
 
     let white_rook = Piece {
         color: Color::White,
         piece_type: PieceType::Rook,
-        value: 1,
+        value: 5,
         has_moved: false
     };
 
     let white_queen = Piece {
         color: Color::White,
         piece_type: PieceType::Queen,
-        value: 1,
+        value: 9,
         has_moved: false
     };
 
     let white_king = Piece {
         color: Color::White,
         piece_type: PieceType::King,
-        value: 1,
+        value: 255,
         has_moved: false
     };
 
@@ -132,35 +136,35 @@ fn main() {
     let black_knight = Piece {
         color: Color::Black,
         piece_type: PieceType::Knight,
-        value: 1,
+        value: 3,
         has_moved: false
     };
 
     let black_bishop = Piece {
         color: Color::Black,
         piece_type: PieceType::Bishop,
-        value: 1,
+        value: 3,
         has_moved: false
     };
 
     let black_rook = Piece {
         color: Color::Black,
         piece_type: PieceType::Rook,
-        value: 1,
+        value: 5,
         has_moved: false
     };
 
     let black_queen = Piece {
         color: Color::Black,
         piece_type: PieceType::Queen,
-        value: 1,
+        value: 9,
         has_moved: false
     };
 
     let black_king = Piece {
         color: Color::Black,
         piece_type: PieceType::King,
-        value: 1,
+        value: 255,
         has_moved: false
     };
 
@@ -173,4 +177,6 @@ fn main() {
                                      Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),Some(white_pawn.clone()),
                                      Some(white_rook.clone()),Some(white_knight.clone()),Some(white_bishop.clone()),Some(white_queen),Some(white_king),Some(white_bishop.clone()),Some(white_knight.clone()),Some(white_rook.clone())];
 
+    
+    calculate_position(&board,Color::White);
 }

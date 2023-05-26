@@ -282,7 +282,7 @@ impl Piece {
         Ok(moves)
     }
 
-    fn do_move(&self,board: &[Option<Piece>; 64],movement: i8) -> Result<u8,ChessEngineError> {
+    fn do_move(&self,board: &[Option<Piece>; 64],movement: i8) -> Result<(u8,[Option<Piece>; 64]),ChessEngineError> {
         let position = board.iter().position(|r| match r {
             None => false,
             Some(r) => ptr::eq(r,self)
@@ -292,13 +292,18 @@ impl Piece {
             None => return Err(ChessEngineError {message: "Piece not in board".to_owned()}),
             Some(index) => index
         };
+        let new_position = (position as i8 + movement) as usize;
 
-        let piece_there = match &board[(position as i8 + movement) as usize] {
-            None => return Ok(0),
-            Some(piece) => piece,
+        let piece_there_value = match &board[new_position] {
+            None => 0,
+            Some(piece) => piece.value,
         };
 
-        Ok(piece_there.value)
+        let mut new_board = board.clone();
+        new_board[position] = Option::None;
+        new_board[new_position] = Some(self.clone());
+
+        Ok((piece_there_value,new_board))
     }
 }
 
@@ -349,8 +354,10 @@ fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     (board,Color::White)
 }
 
-fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8) -> i32 {
-    let mut max: i32 = -127;
+fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8) -> (Option<PieceType>,i8,i32) {
+    let mut max: i32 = -500;
+    let mut best_move = 0;
+    let mut best_move_piece = Option::None;
     for square in board {
         let piece = match square {
             Some(piece) => piece,
@@ -360,27 +367,29 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_le
         if piece.color == whos_move {
             if let Ok(moves) = piece.get_moves(board) {
                 for movement in moves {
-                    let mut value: i32 =  match piece.do_move(board, movement) {
-                        Ok(value) => value as i32,
-                        Err(_) => 0
+                    let (mut value,new_board): (i32,[Option<Piece>; 64]) =  match piece.do_move(board, movement) {
+                        Ok((value,new_board)) => (value as i32,new_board),
+                        Err(_) => (0,board.clone())
                     };
                     
                     if value == 255 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
-                        return 255
+                        return (Some(piece.piece_type.clone()),movement,value)
                     }
                     
                     if recursion_level != current_recursion {
-                        value -= calculate_position(board, if whos_move == Color::White { Color::Black } else { Color::White },recursion_level, current_recursion + 1);
+                        value -= calculate_position(&new_board, if whos_move == Color::White { Color::Black } else { Color::White },recursion_level, current_recursion + 1).2;
                     }
                     
                     if value > max {
                         max = value;
+                        best_move = movement;
+                        best_move_piece = Some(piece.piece_type.clone());
                     };
                 }
             }
         }
     }
-    return max;
+    return (best_move_piece,best_move,max);
 }
 
 fn main() { 
@@ -393,6 +402,8 @@ fn main() {
 
     let (board,color_to_play) = parse_fen("rnb1kbnr/pppppppp/5q2/8/2B1N3/4P3/PPPP1PPP/RNBQK2R" /*&fen_input.trim() */);
     let (board2,color_to_play2) = parse_fen("rnbqkbnr/pppppppp/8/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR");
-    println!("{}",calculate_position(&board,color_to_play.clone(),4,1));
-    println!("{}",calculate_position(&board2,color_to_play2.clone(),4,1));
+    let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play.clone(),4,1);
+    println!("{:?} {} {}",best_move_piece_1,best_move_1,max_1);
+    let (best_move_piece_2,best_move_2,max_2) = calculate_position(&board2,color_to_play2.clone(),4,1);
+    println!("{:?} {} {}",best_move_piece_2,best_move_2,max_2);
 }

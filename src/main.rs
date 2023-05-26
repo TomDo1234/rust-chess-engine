@@ -38,103 +38,6 @@ impl fmt::Display for ChessEngineError {
 
 impl Error for ChessEngineError {}
 
-impl Piece {
-    fn get_moves(&self,board: &[Option<Piece> ; 64]) -> Result<Vec<i8>,ChessEngineError> {
-        let position: Option<usize> = board.iter().position(|r| match r {
-            None => false,
-            Some(r) => ptr::eq(r,self) //checking if the actual memory address is equal
-        });
-
-        let position = match position {
-            None => return Err(ChessEngineError {message: "Piece not in board".to_owned()}),
-            Some(index) => index
-        };
-
-        let moves = match self.piece_type {
-            PieceType::Pawn => {
-                let direction: i8 = match self.color {
-                    Color::White => -1,
-                    Color::Black => 1
-                };
-
-                let mut available_moves: Vec<i8> = vec![];
-                if !self.has_moved && board[(position as i8 + 16 * direction) as usize] == Option::None {
-                    available_moves.push(16 * direction);
-                }
-                if board[(position as i8 + 8 * direction) as usize] == Option::None {
-                    available_moves.push(8 * direction);
-                }
-                if let Some(piece) = &board[(position as i8 + 9 * direction) as usize] {
-                    if piece.color != self.color {
-                        available_moves.push(9 * direction);
-                    }
-                }
-                if let Some(piece) = &board[(position as i8 + 7 * direction) as usize] {
-                    if piece.color != self.color {
-                        available_moves.push(7 * direction);
-                    }
-                }
-                available_moves
-            },
-            PieceType::Knight => {
-                let moves: Vec<i8> = vec![-17, -15, -10, -6, 6, 10, 15, 17];
-                let mut available_moves: Vec<i8> = vec![];
-                for movement in moves {
-                    let new_position = position as i8 + movement;
-                    if new_position < 0 || new_position > 63 {
-                        continue;
-                    }
-                    else if board[new_position as usize] != Option::None {
-                        continue;
-                    }
-                    else if (movement == 10 || movement == 6 || movement == -10 || movement == -6) && (new_position % 8 - position as i8 % 8).abs() != 2 {
-                        continue;
-                    }
-                    else if (movement == 17 || movement == 15 || movement == -15 || movement == -17) && (new_position % 8 - position as i8 % 8).abs() != 1 {
-                        continue;
-                    }
-                    available_moves.push(movement);
-                }
-                available_moves
-            }
-            PieceType::Bishop => vec![-9, -18, -27, -36, -45, -54, -63, -72, -7, -14, -21, -28, -35, -42, -49, -56, 7, 14, 21, 28, 35, 42, 49, 56, 9, 18, 27, 36, 45, 54, 63, 72],
-            PieceType::Rook => vec![-8, -16, -24, -32, -40, -48, -56, -64, -1, -2, -3, -4, -5, -6, -7, -8, 1, 2, 3, 4, 5, 6, 7, 8, 8, 16, 24, 32, 40, 48, 56, 64],
-            PieceType::Queen => vec![-8, -16, -24, -32, -40, -48, -56, -64, -1, -2, -3, -4, -5, -6, -7, -8, 1, 2, 3, 4, 5, 6, 7, 8, 8, 16, 24, 32, 40, 48, 56, 64
-            ,-9, -18, -27, -36, -45, -54, -63, -72, -7, -14, -21, -28, -35, -42, -49, -56, 7, 14, 21, 28, 35, 42, 49, 56, 9, 18, 27, 36, 45, 54, 63, 72],
-            PieceType::King => vec![1,-1,9,-9,8,-8,7,-7]
-        };
-        Ok(moves)
-    }
-
-    fn do_move(&self,board: &[Option<Piece>; 64],movement: i8) -> Option<u8> {
-        let position = board.iter().position(|r| match r {
-            None => false,
-            Some(r) => r == self
-        });
-
-        let position = match position {
-            None => return None,
-            Some(index) => index
-        };
-
-        let piece_there =  match board.get((position as i8 + movement) as usize) {
-            None => return None,
-            Some(square) => square,
-        };
-
-        match piece_there {
-            None => {
-                if self.piece_type == PieceType::Pawn && ![8,9,-8,-9].contains(&movement) {
-                    None
-                }
-                else {
-                    Some(0)
-                }
-            },
-            Some(piece) => Some(piece.value)
-        }
-    }
-}
 
 
 static WHITE_PAWN: Piece = Piece {
@@ -220,6 +123,125 @@ static BLACK_KING: Piece = Piece {
     value: 255,
     has_moved: false
 };
+
+impl Piece {
+    fn get_moves(&self,board: &[Option<Piece> ; 64]) -> Result<Vec<i8>,ChessEngineError> {
+        let position: Option<usize> = board.iter().position(|r| match r {
+            None => false,
+            Some(r) => ptr::eq(r,self) //checking if the actual memory address is equal
+        });
+
+        let position = match position {
+            None => return Err(ChessEngineError {message: "Piece not in board".to_owned()}),
+            Some(index) => index
+        };
+
+        let moves = match self.piece_type {
+            PieceType::Pawn => {
+                let direction: i8 = match self.color {
+                    Color::White => -1,
+                    Color::Black => 1
+                };
+
+                let mut available_moves: Vec<i8> = vec![];
+                if !self.has_moved && board[(position as i8 + 16 * direction) as usize] == Option::None {
+                    available_moves.push(16 * direction);
+                }
+                if board[(position as i8 + 8 * direction) as usize] == Option::None {
+                    available_moves.push(8 * direction);
+                }
+                if let Some(piece) = &board[(position as i8 + 9 * direction) as usize] {
+                    if piece.color != self.color {
+                        available_moves.push(9 * direction);
+                    }
+                }
+                if let Some(piece) = &board[(position as i8 + 7 * direction) as usize] {
+                    if piece.color != self.color {
+                        available_moves.push(7 * direction);
+                    }
+                }
+                available_moves
+            },
+            PieceType::Knight => {
+                let moves: Vec<i8> = vec![-17, -15, -10, -6, 6, 10, 15, 17];
+                let mut available_moves: Vec<i8> = vec![];
+                for movement in moves {
+                    let new_position = position as i8 + movement;
+                    if new_position < 0 || new_position > 63 {
+                        continue;
+                    }
+                    else if board[new_position as usize] != Option::None {
+                        continue;
+                    }
+                    else if (movement == 10 || movement == 6 || movement == -10 || movement == -6) && (new_position % 8 - position as i8 % 8).abs() != 2 {
+                        continue;
+                    }
+                    else if (movement == 17 || movement == 15 || movement == -15 || movement == -17) && (new_position % 8 - position as i8 % 8).abs() != 1 {
+                        continue;
+                    }
+                    available_moves.push(movement);
+                }
+                available_moves
+            }
+            PieceType::Bishop => {
+                let mut available_moves: Vec<i8> = vec![];
+                let directions: [i8;4] = [-9,9,7,-7];
+                for direction in directions {
+                    for i in 0..9 {
+                        let movement: i8 = direction * i;
+                        let new_position = position as i8 + movement;
+                        if new_position > 63 || new_position < 0 {
+                            break;
+                        }
+                        if let Some(piece) = &board[new_position as usize] {
+                            if piece.color != self.color {
+                                available_moves.push(movement);
+                            }
+                            break;
+                        }
+                        available_moves.push(movement);
+                    }
+                }
+                available_moves
+            },
+            PieceType::Rook => vec![-8, -16, -24, -32, -40, -48, -56, -64, -1, -2, -3, -4, -5, -6, -7, -8, 1, 2, 3, 4, 5, 6, 7, 8, 8, 16, 24, 32, 40, 48, 56, 64],
+            PieceType::Queen => vec![-8, -16, -24, -32, -40, -48, -56, -64, -1, -2, -3, -4, -5, -6, -7, -8, 1, 2, 3, 4, 5, 6, 7, 8, 8, 16, 24, 32, 40, 48, 56, 64
+            ,-9, -18, -27, -36, -45, -54, -63, -72, -7, -14, -21, -28, -35, -42, -49, -56, 7, 14, 21, 28, 35, 42, 49, 56, 9, 18, 27, 36, 45, 54, 63, 72],
+            PieceType::King => vec![1,-1,9,-9,8,-8,7,-7]
+        };
+        Ok(moves)
+    }
+
+    fn do_move(&self,board: &[Option<Piece>; 64],movement: i8) -> Option<u8> {
+        let position = board.iter().position(|r| match r {
+            None => false,
+            Some(r) => r == self
+        });
+
+        let position = match position {
+            None => return None,
+            Some(index) => index
+        };
+
+        let piece_there =  match board.get((position as i8 + movement) as usize) {
+            None => return None,
+            Some(square) => square,
+        };
+
+        match piece_there {
+            None => {
+                if self.piece_type == PieceType::Pawn && ![8,9,-8,-9].contains(&movement) {
+                    None
+                }
+                else {
+                    Some(0)
+                }
+            },
+            Some(piece) => Some(piece.value)
+        }
+    }
+}
+
 
 fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     let mut board: [Option<Piece>; 64] = [(); 64].map(|_| None);

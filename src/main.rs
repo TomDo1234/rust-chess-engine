@@ -144,11 +144,11 @@ impl Piece {
                 };
 
                 let mut available_moves: Vec<i8> = vec![];
-                if !self.has_moved && board[(position as i8 + 16 * direction) as usize] == Option::None {
-                    available_moves.push(16 * direction);
-                }
                 if board[(position as i8 + 8 * direction) as usize] == Option::None {
                     available_moves.push(8 * direction);
+                    if !self.has_moved && board[(position as i8 + 16 * direction) as usize] == Option::None {
+                        available_moves.push(16 * direction);
+                    }
                 }
                 if let Some(piece) = &board[(position as i8 + 9 * direction) as usize] {
                     if piece.color != self.color {
@@ -252,13 +252,13 @@ impl Piece {
                 for movement in directions {
                     let new_position = position as i8 + movement;
                     if new_position > 63 || new_position < 0 {
-                        break;
+                        continue;
                     }
                     if let Some(piece) = &board[new_position as usize] {
                         if piece.color != self.color {
                             available_moves.push(movement);
                         }
-                        break;
+                        continue;
                     }
                     available_moves.push(movement);
                 }
@@ -335,8 +335,9 @@ fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     (board,Color::White)
 }
 
-fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i32 {
+fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,current_value: i32,recursion_level: u8,current_recursion: u8) -> i32 {
     let mut max: i32 = -127;
+    let mut total_val = -current_value;
     for square in board {
         let piece = match square {
             Some(piece) => piece,
@@ -346,18 +347,29 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color) -> i32 {
         if piece.color == whos_move {
             if let Ok(moves) = piece.get_moves(board) {
                 for movement in moves {
-                    let value = match piece.do_move(board, movement) {
-                        Ok(value) => value,
+                    let mut value: i32 =  match piece.do_move(board, movement) {
+                        Ok(value) => value as i32,
                         Err(_) => 0
                     };
-                    if value as i32 > max { 
-                        max = value as i32;
+
+                    if value == 255 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
+                        return 255
                     }
+                    
+                    if recursion_level != current_recursion {
+                        value -= calculate_position(board, if whos_move == Color::White { Color::Black } else { Color::White },total_val,recursion_level, current_recursion + 1);
+                        if current_recursion == 1 { println!("{value} {:?} {:?}",piece.piece_type,movement);}
+                    }
+                    
+                    if value > max {
+                        max = value;
+                        total_val = value - current_value;
+                    };
                 }
             }
         }
     }
-    return max;
+    return total_val;
 }
 
 fn main() { 
@@ -368,6 +380,8 @@ fn main() {
     // io::stdin().read_line(&mut fen_input)
     //     .expect("Failed to read line");
 
-    let (board,color_to_play) = parse_fen("3k4/5ppp/p7/P7/5b2/7P/1r3PP1/3R2K1" /*&fen_input.trim() */);
-    println!("{}",calculate_position(&board,color_to_play));
+    let (board,color_to_play) = parse_fen("rnbqkbnr/p1pp1pp1/1p5p/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR" /*&fen_input.trim() */);
+    //let (board2,color_to_play2) = parse_fen("3k4/5ppp/p7/P7/5b2/7P/1r3PP1/3R2K1");
+    println!("{}",calculate_position(&board,color_to_play.clone(),0,4,1));
+    //println!("{}",calculate_position(&board2,color_to_play2.clone(),0,4,1));
 }

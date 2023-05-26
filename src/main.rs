@@ -217,6 +217,9 @@ impl Piece {
                         if new_position > 63 || new_position < 0 {
                             break;
                         }
+                        if direction.abs() == 1 && (new_position / 8) != (position / 8) as i8 {
+                            break;
+                        }
                         if let Some(piece) = &board[new_position as usize] {
                             if piece.color != self.color {
                                 available_moves.push(movement);
@@ -236,6 +239,12 @@ impl Piece {
                         let movement: i8 = direction * i;
                         let new_position = position as i8 + movement;
                         if new_position > 63 || new_position < 0 {
+                            break;
+                        }
+                        if direction.abs() == 1 && (new_position / 8) != (position / 8) as i8 {
+                            break;
+                        }
+                        else if direction.abs() != 1  && ((new_position / 8) - (position / 8) as i8).abs() != i {
                             break;
                         }
                         if let Some(piece) = &board[new_position as usize] {

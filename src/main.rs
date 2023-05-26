@@ -347,9 +347,8 @@ fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     (board,Color::White)
 }
 
-fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,current_value: i32,recursion_level: u8,current_recursion: u8) -> i32 {
+fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8) -> i32 {
     let mut max: i32 = -127;
-    let mut total_val = -current_value;
     for square in board {
         let piece = match square {
             Some(piece) => piece,
@@ -363,25 +362,23 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,current_valu
                         Ok(value) => value as i32,
                         Err(_) => 0
                     };
-
+                    
                     if value == 255 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
                         return 255
                     }
                     
                     if recursion_level != current_recursion {
-                        value -= calculate_position(board, if whos_move == Color::White { Color::Black } else { Color::White },total_val,recursion_level, current_recursion + 1);
+                        value -= calculate_position(board, if whos_move == Color::White { Color::Black } else { Color::White },recursion_level, current_recursion + 1);
                     }
-                    println!("{value} {:?} {:?}",piece.piece_type,movement);
                     
                     if value > max {
                         max = value;
-                        total_val = value - current_value;
                     };
                 }
             }
         }
     }
-    return total_val;
+    return max;
 }
 
 fn main() { 
@@ -393,7 +390,7 @@ fn main() {
     //     .expect("Failed to read line");
 
     let (board,color_to_play) = parse_fen("rnbqkbnr/pppppppp/8/8/8/2P2Q2/PP1PPPPP/RNB1KBNR" /*&fen_input.trim() */);
-    //let (board2,color_to_play2) = parse_fen("3k4/5ppp/p7/P7/5b2/7P/1r3PP1/3R2K1");
-    println!("{}",calculate_position(&board,color_to_play.clone(),4,1,1));
-    //println!("{}",calculate_position(&board2,color_to_play2.clone(),0,4,1));
+    let (board2,color_to_play2) = parse_fen("rnbqkbnr/pppppppp/8/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR");
+    println!("{}",calculate_position(&board,color_to_play.clone(),4,1));
+    println!("{}",calculate_position(&board2,color_to_play2.clone(),4,1));
 }

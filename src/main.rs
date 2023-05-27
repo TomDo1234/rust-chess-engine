@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{io, error::Error,ptr, time::Instant};
+use std::{io, error::Error,ptr};
 
 #[derive(Clone,PartialEq,Debug,Copy)]
 enum Color {
@@ -152,14 +152,20 @@ impl Piece {
                         available_moves.push(16 * direction);
                     }
                 }
-                if let Some(piece) = &board[(position as i8 + 9 * direction) as usize] {
-                    if piece.color != self.color {
-                        available_moves.push(9 * direction);
+                let new_position = position as i8 + 9 * direction;
+                if ((new_position / 8) - (position / 8) as i8).abs() == 1 {
+                    if let Some(piece) = &board[new_position as usize] {
+                        if piece.color != self.color {
+                            available_moves.push(9 * direction);
+                        }
                     }
                 }
-                if let Some(piece) = &board[(position as i8 + 7 * direction) as usize] {
-                    if piece.color != self.color {
-                        available_moves.push(7 * direction);
+                let new_position = position as i8 + 7 * direction;
+                if ((new_position / 8) - (position / 8) as i8).abs() == 1 {
+                    if let Some(piece) = &board[new_position as usize] {
+                        if piece.color != self.color {
+                            available_moves.push(7 * direction);
+                        }
                     }
                 }
                 available_moves
@@ -376,7 +382,9 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_le
             Some(piece) => piece,
             None => continue
         };
-
+        if current_recursion == 1 {
+            println!("{:?} {:?}", piece.piece_type, piece.get_moves(board));
+        }
         if piece.color == whos_move {
             if let Ok(moves) = piece.get_moves(board) {
                 for movement in moves {
@@ -473,5 +481,19 @@ mod tests {
         let (board,color_to_play) = parse_fen("6rk/6pp/8/4N3/8/8/B7/4K3" /*&fen_input.trim() */);
         let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999);
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-15,255));
+    }
+
+    #[test]
+    fn test_two_move() {
+        let (board,color_to_play) = parse_fen("2r4k/6pp/8/4N3/8/1Q6/B7/4K3" /*&fen_input.trim() */);
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,5,1,0,999,-999);
+        assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-6,252));
+    }
+
+    #[test]
+    fn test_two_move_2() {
+        let (board,color_to_play) = parse_fen("r1bq2r1/b4pk1/p1pp1p2/1p2pP2/1P2P1PB/3P4/1PPQ2P1/R3K2R" /*&fen_input.trim() */);
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,5,1,0,999,-999);
+        assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Queen),-28,245));
     }
 }

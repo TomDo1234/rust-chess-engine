@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{io, error::Error,ptr, time::Instant};
+use std::{error::Error,ptr, time::Instant};
 
 #[derive(Clone,PartialEq,Debug,Copy)]
 enum Color {
@@ -417,7 +417,6 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_le
 }
 
 fn main() { 
-    let mut fen_input = String::new();
     //rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR starting position
 
     println!("Enter FEN:");

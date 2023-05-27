@@ -1,13 +1,13 @@
 use core::fmt;
 use std::{io, error::Error,ptr};
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone,PartialEq,Debug,Copy)]
 enum Color {
     White,
     Black,
 }
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone,PartialEq,Debug,Copy)]
 enum PieceType {
     Pawn,
     Knight,
@@ -17,7 +17,7 @@ enum PieceType {
     King
 }
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone,PartialEq,Debug,Copy)]
 struct Piece {
     color: Color,
     piece_type: PieceType,
@@ -299,9 +299,9 @@ impl Piece {
             Some(piece) => piece.value,
         };
 
-        let mut new_board = board.clone();
+        let mut new_board = *board;
         new_board[position] = Option::None;
-        new_board[new_position] = Some(self.clone());
+        new_board[new_position] = Some(*self);
 
         Ok((piece_there_value,new_board))
     }
@@ -323,23 +323,23 @@ fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
                 _ => {
                     let piece: Option<Piece> = if c.is_uppercase() { 
                         match c.to_ascii_lowercase() {
-                            'p' => Some(WHITE_PAWN.clone()),
-                            'r' => Some(WHITE_ROOK.clone()),
-                            'n' => Some(WHITE_KNIGHT.clone()),
-                            'b' => Some(WHITE_BISHOP.clone()),
-                            'q' => Some(WHITE_QUEEN.clone()),
-                            'k' => Some(WHITE_KING.clone()),
+                            'p' => Some(WHITE_PAWN),
+                            'r' => Some(WHITE_ROOK),
+                            'n' => Some(WHITE_KNIGHT),
+                            'b' => Some(WHITE_BISHOP),
+                            'q' => Some(WHITE_QUEEN),
+                            'k' => Some(WHITE_KING),
                             _ => panic!("Invalid character in FEN string {c}"),
                         }
                     }
                     else { 
                         match c.to_ascii_lowercase() {
-                            'p' => Some(BLACK_PAWN.clone()),
-                            'r' => Some(BLACK_ROOK.clone()),
-                            'n' => Some(BLACK_KNIGHT.clone()),
-                            'b' => Some(BLACK_BISHOP.clone()),
-                            'q' => Some(BLACK_QUEEN.clone()),
-                            'k' => Some(BLACK_KING.clone()),
+                            'p' => Some(BLACK_PAWN),
+                            'r' => Some(BLACK_ROOK),
+                            'n' => Some(BLACK_KNIGHT),
+                            'b' => Some(BLACK_BISHOP),
+                            'q' => Some(BLACK_QUEEN),
+                            'k' => Some(BLACK_KING),
                             _ => panic!("Invalid character in FEN string {c}"),
                         }
                     };
@@ -369,11 +369,11 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_le
                 for movement in moves {
                     let (mut value,new_board): (i32,[Option<Piece>; 64]) =  match piece.do_move(board, movement) {
                         Ok((value,new_board)) => (value as i32,new_board),
-                        Err(_) => (0,board.clone())
+                        Err(_) => (0,*board)
                     };
                     
                     if value == 255 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
-                        return (Some(piece.piece_type.clone()),movement,value)
+                        return (Some(piece.piece_type),movement,value)
                     }
                     
                     if recursion_level != current_recursion {
@@ -383,7 +383,7 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_le
                     if value > max {
                         max = value;
                         best_move = movement;
-                        best_move_piece = Some(piece.piece_type.clone());
+                        best_move_piece = Some(piece.piece_type);
                     };
                 }
             }
@@ -402,8 +402,8 @@ fn main() {
 
     let (board,color_to_play) = parse_fen("rnb1kbnr/pppppppp/5q2/8/2B1N3/4P3/PPPP1PPP/RNBQK2R" /*&fen_input.trim() */);
     let (board2,color_to_play2) = parse_fen("rnbqkbnr/pppppppp/8/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR");
-    let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play.clone(),4,1);
+    let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1);
     println!("{:?} {} {}",best_move_piece_1,best_move_1,max_1);
-    let (best_move_piece_2,best_move_2,max_2) = calculate_position(&board2,color_to_play2.clone(),4,1);
+    let (best_move_piece_2,best_move_2,max_2) = calculate_position(&board2,color_to_play2,4,1);
     println!("{:?} {} {}",best_move_piece_2,best_move_2,max_2);
 }

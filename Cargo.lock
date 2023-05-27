@@ -510,6 +510,9 @@ dependencies = [
 name = "rust-chess-engine"
 version = "0.1.0"
 dependencies = [
+ "gloo",
+ "wasm-bindgen",
+ "web-sys",
  "yew",
 ]
 

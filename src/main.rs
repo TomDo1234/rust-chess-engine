@@ -1,22 +1,29 @@
 use crate::chess_engine::{parse_fen, calculate_position};
 mod chess_engine;
 
-use yew::prelude::*;
+use wasm_bindgen::JsCast;
+use yew::{prelude::*};
+use gloo::console::log;
+use web_sys::HtmlInputElement;
 
 #[function_component]
 fn App() -> Html {
-    let mut fen = "";
-    fn submit_fen (e: KeyboardEvent) {
-        if e.key() != "Enter" {
+    let submit_fen = Callback::from(|event: KeyboardEvent| {
+        if event.key() != "Enter".to_owned() {
             return;
         }
-        e.current_target();
-    }
+        let target = event.target().unwrap();
+        let input = target.unchecked_into::<HtmlInputElement>();
+        let value = input.value();
+        log!(value.clone());
+        let (board,color_to_play) = parse_fen(&value.clone() /*&fen_input.trim() */);
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999);
+        log!(format!("{:?} {} {}",best_move_piece_1,best_move_1,max_1));
+    });
 
     html! {
         <div>
-            <input onkeypress={submit_fen} value={fen} />
-            {fen}
+            <input onkeypress={submit_fen} />
         </div>
     }
 }

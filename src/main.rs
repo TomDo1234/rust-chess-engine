@@ -270,6 +270,12 @@ impl Piece {
                     if new_position > 63 || new_position < 0 {
                         continue;
                     }
+                    if movement.abs() == 1 && (new_position / 8) != (position / 8) as i8 {
+                        break;
+                    }
+                    else if movement.abs() != 1  && ((new_position / 8) - (position / 8) as i8).abs() != 1 {
+                        break;
+                    }
                     if let Some(piece) = &board[new_position as usize] {
                         if piece.color != self.color {
                             available_moves.push(movement);
@@ -397,7 +403,6 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_le
                             beta = take_value;
                         }
                     }
-
                     
                     if take_value * sign > best_score * sign {
                         best_score = take_value;
@@ -425,8 +430,8 @@ fn main() {
     // io::stdin().read_line(&mut fen_input)
     //     .expect("Failed to read line");
     let start_time = Instant::now();
-    let (board,color_to_play) = parse_fen("6k1/5ppp/8/8/8/8/8/1Q2K3" /*&fen_input.trim() */);
-    let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,3,1,0,0,0);
+    let (board,color_to_play) = parse_fen("6rk/6pp/8/4N3/8/8/B7/4K3" /*&fen_input.trim() */);
+    let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999);
     println!("{:?} {} {}",best_move_piece_1,best_move_1,max_1);
     let elapsed_time = start_time.elapsed();
     println!("Elapsed time: {} seconds, {} milliseconds",
@@ -448,14 +453,28 @@ mod tests {
     #[test]
     fn test_scholar() {
         let (board,color_to_play) = parse_fen("rnbqkbnr/pppppppp/8/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,0,0);
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999);
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Bishop),-21,253));
     }
 
     #[test]
     fn test_back_rank() {
         let (board,color_to_play) = parse_fen("6k1/5ppp/8/8/8/8/8/1Q2K3" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,3,1,0,0,0);
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,3,1,0,999,-999);
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Queen),-56,255));
+    }
+
+    #[test]
+    fn test_fork() {
+        let (board,color_to_play) = parse_fen("2r3k1/5ppp/8/3N4/8/8/8/4K3" /*&fen_input.trim() */);
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,3,1,0,999,-999);
+        assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-15,5));
+    }
+
+    #[test]
+    fn test_smother() {
+        let (board,color_to_play) = parse_fen("6rk/6pp/8/4N3/8/8/B7/4K3" /*&fen_input.trim() */);
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999);
+        assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-15,255));
     }
 }

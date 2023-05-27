@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{io, error::Error,ptr};
+use std::{io, error::Error,ptr, time::Instant};
 
 #[derive(Clone,PartialEq,Debug,Copy)]
 enum Color {
@@ -354,8 +354,13 @@ fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     (board,Color::White)
 }
 
-fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8) -> (Option<PieceType>,i8,i32) {
-    let mut max: i32 = -500;
+fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8,value: i32,mut alpha: i32,mut beta: i32) -> (Option<PieceType>,i8,i32) {
+    let sign = match whos_move {
+        Color::White => 1,
+        Color::Black => -1
+    };
+    
+    let mut best_score: i32 = -sign * 500;
     let mut best_move = 0;
     let mut best_move_piece = Option::None;
     for square in board {
@@ -367,29 +372,48 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_le
         if piece.color == whos_move {
             if let Ok(moves) = piece.get_moves(board) {
                 for movement in moves {
-                    let (mut value,new_board): (i32,[Option<Piece>; 64]) =  match piece.do_move(board, movement) {
+                    let (mut take_value,new_board): (i32,[Option<Piece>; 64]) =  match piece.do_move(board, movement) {
                         Ok((value,new_board)) => (value as i32,new_board),
                         Err(_) => (0,*board)
                     };
+                    take_value *= sign;
                     
-                    if value == 255 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
-                        return (Some(piece.piece_type),movement,value)
+                    if take_value.abs() == 255 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
+                        return (Some(piece.piece_type),movement,take_value)
                     }
                     
                     if recursion_level != current_recursion {
-                        value -= calculate_position(&new_board, if whos_move == Color::White { Color::Black } else { Color::White },recursion_level, current_recursion + 1).2;
+                        let foresight_value = calculate_position(&new_board, if whos_move == Color::White { Color::Black } else { Color::White },
+                                                    recursion_level, current_recursion + 1,value + take_value,alpha,beta).2;
+                                                    
+                        take_value += foresight_value;
+
+                        if whos_move == Color::White && foresight_value > alpha {
+                            alpha = take_value;
+                        }
+                        else if whos_move == Color::Black && foresight_value < beta {
+                            beta = take_value;
+                        }
                     }
+
                     
-                    if value > max {
-                        max = value;
+                    if take_value * sign > best_score * sign {
+                        best_score = take_value;
                         best_move = movement;
                         best_move_piece = Some(piece.piece_type);
                     };
+
+                    if whos_move == Color::Black && best_score < beta {
+                        return (best_move_piece ,best_move,best_score)
+                    }
+                    else if whos_move == Color::White && best_score > alpha {
+                        return (best_move_piece ,best_move,best_score)
+                    }
                 }
             }
         }
     }
-    return (best_move_piece,best_move,max);
+    return (best_move_piece,best_move,best_score);
 }
 
 fn main() { 
@@ -401,6 +425,6 @@ fn main() {
         .expect("Failed to read line");
 
     let (board,color_to_play) = parse_fen(&fen_input /*&fen_input.trim() */);
-    let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,1,1);
+    let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,1,1,0,0,0);
     println!("{:?} {} {}",best_move_piece_1,best_move_1,max_1);
 }

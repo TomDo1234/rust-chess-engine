@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{io, error::Error,ptr};
+use std::{io, error::Error,ptr, time::Instant};
 
 #[derive(Clone,PartialEq,Debug,Copy)]
 enum Color {
@@ -354,7 +354,7 @@ fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     (board,Color::White)
 }
 
-fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8,mut value: i32,alpha: i32,beta: i32) -> (Option<PieceType>,i8,i32) {
+fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8,value: i32,mut alpha: i32,mut beta: i32) -> (Option<PieceType>,i8,i32) {
     let sign = match whos_move {
         Color::White => 1,
         Color::Black => -1
@@ -383,15 +383,32 @@ fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_le
                     }
                     
                     if recursion_level != current_recursion {
-                        take_value += calculate_position(&new_board, if whos_move == Color::White { Color::Black } else { Color::White },
+                        let foresight_value = calculate_position(&new_board, if whos_move == Color::White { Color::Black } else { Color::White },
                                                     recursion_level, current_recursion + 1,value + take_value,alpha,beta).2;
+                                                    
+                        take_value += foresight_value;
+
+                        if whos_move == Color::White && foresight_value > alpha {
+                            alpha = take_value;
+                        }
+                        else if whos_move == Color::Black && foresight_value < beta {
+                            beta = take_value;
+                        }
                     }
+
                     
                     if take_value * sign > best_score * sign {
                         best_score = take_value;
                         best_move = movement;
                         best_move_piece = Some(piece.piece_type);
                     };
+
+                    if whos_move == Color::Black && best_score < beta {
+                        return (best_move_piece ,best_move,best_score)
+                    }
+                    else if whos_move == Color::White && best_score > alpha {
+                        return (best_move_piece ,best_move,best_score)
+                    }
                 }
             }
         }
@@ -406,11 +423,15 @@ fn main() {
     // println!("Enter FEN:");
     // io::stdin().read_line(&mut fen_input)
     //     .expect("Failed to read line");
-
+    let start_time = Instant::now();
     let (board,color_to_play) = parse_fen("rnb1kbnr/pppppppp/5q2/8/2B1N3/4P3/PPPP1PPP/RNBQK2R" /*&fen_input.trim() */);
     let (board2,color_to_play2) = parse_fen("rnbqkbnr/pppppppp/8/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR");
     let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,0,0);
     println!("{:?} {} {}",best_move_piece_1,best_move_1,max_1);
     let (best_move_piece_2,best_move_2,max_2) = calculate_position(&board2,color_to_play2,4,1,0,0,0);
     println!("{:?} {} {}",best_move_piece_2,best_move_2,max_2);
+    let elapsed_time = start_time.elapsed();
+    println!("Elapsed time: {} seconds, {} milliseconds",
+             elapsed_time.as_secs(),
+             elapsed_time.subsec_millis());
 }

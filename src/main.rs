@@ -1,5 +1,6 @@
-use crate::chess_engine::{parse_fen, calculate_position};
+use crate::{chess_engine::{parse_fen, calculate_position}, components::chess_board::ChessBoard};
 mod chess_engine;
+mod components;
 
 use wasm_bindgen::JsCast;
 use yew::{prelude::*};
@@ -22,8 +23,9 @@ fn App() -> Html {
     });
 
     html! {
-        <div>
-            <input onkeypress={submit_fen} />
+        <div class="flex flex-col justify-center items-center h-screen" >
+            <input class={classes!("border border-1 border-black border-solid".to_owned())} onkeypress={submit_fen} />
+            <ChessBoard board={[None; 64]} />
         </div>
     }
 }

@@ -9,23 +9,29 @@ use web_sys::HtmlInputElement;
 
 #[function_component]
 fn App() -> Html {
-    let submit_fen = Callback::from(|event: KeyboardEvent| {
-        if event.key() != "Enter".to_owned() {
-            return;
-        }
-        let target = event.target().unwrap();
-        let input = target.unchecked_into::<HtmlInputElement>();
-        let value = input.value();
-        log!(value.clone());
-        let (board,color_to_play) = parse_fen(&value.clone() /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999);
-        log!(format!("{:?} {} {}",best_move_piece_1,best_move_1,max_1));
-    });
+    let board = use_state(|| [None; 64]);
+
+    let submit_fen = {
+        let board = board.clone();
+        Callback::from(move |event: KeyboardEvent| {
+            if event.key() != "Enter".to_owned() {
+                return;
+            }
+            let target = event.target().unwrap();
+            let input = target.unchecked_into::<HtmlInputElement>();
+            let value = input.value();
+            log!(value.clone());
+            let (result_board,color_to_play) = parse_fen(&value.clone() /*&fen_input.trim() */);
+            let (best_move_piece_1,best_move_1,max_1) = calculate_position(&result_board,color_to_play,4,1,0,999,-999);
+            log!(format!("{:?} {} {}",best_move_piece_1,best_move_1,max_1));
+            board.set(result_board);
+        })
+    };
 
     html! {
         <div class="flex flex-col justify-center items-center h-screen" >
             <input class={classes!("border border-1 border-black border-solid".to_owned())} onkeypress={submit_fen} />
-            <ChessBoard board={[None; 64]} />
+            <ChessBoard board={*board} />
         </div>
     }
 }

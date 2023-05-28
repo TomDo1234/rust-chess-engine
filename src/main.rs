@@ -22,7 +22,7 @@ fn App() -> Html {
             let value = input.value();
             log!(value.clone());
             let (result_board,color_to_play) = parse_fen(&value.clone() /*&fen_input.trim() */);
-            let (best_move_piece_1,best_move_1,max_1) = calculate_position(&result_board,color_to_play,4,1,0,999,-999,&mut ZobristHash::new());
+            let (best_move_piece_1,best_move_1,max_1) = calculate_position(&result_board,color_to_play,4,1,0,999,-999,&ZobristHash::new());
             log!(format!("{:?} {} {}",best_move_piece_1,best_move_1,max_1));
             board.set(result_board);
         })

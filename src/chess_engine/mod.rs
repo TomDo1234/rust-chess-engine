@@ -372,7 +372,7 @@ pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
 }
 
 pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,
-                            current_recursion: u8,value: i32,mut alpha: i32,mut beta: i32,transposition_table:&mut ZobristHash) -> (Option<PieceType>,i8,i32) {
+                            current_recursion: u8,value: i32,mut alpha: i32,mut beta: i32,transposition_table: &ZobristHash) -> (Option<PieceType>,i8,i32) {
     let sign = match whos_move {
         Color::White => 1,
         Color::Black => -1
@@ -440,49 +440,49 @@ mod tests {
     #[test]
     fn test_simple_take() {
         let (board,color_to_play) = parse_fen("rnb1kbnr/pppppppp/5q2/8/4N3/8/PPPPPPPP/R1BQKBNR" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,0,0,&mut ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,0,0,&ZobristHash::new());
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-15,6));
     }
 
     #[test]
     fn test_scholar() {
         let (board,color_to_play) = parse_fen("rnbqkbnr/pppppppp/8/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999,&mut ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999,&ZobristHash::new());
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Bishop),-21,253));
     }
 
     #[test]
     fn test_back_rank() {
         let (board,color_to_play) = parse_fen("6k1/5ppp/8/8/8/8/8/1Q2K3" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,3,1,0,999,-999,&mut ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,3,1,0,999,-999,&ZobristHash::new());
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Queen),-56,255));
     }
 
     #[test]
     fn test_fork() {
         let (board,color_to_play) = parse_fen("2r3k1/5ppp/8/3N4/8/8/8/4K3" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,3,1,0,999,-999,&mut ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,3,1,0,999,-999,&ZobristHash::new());
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-15,5));
     }
 
     #[test]
     fn test_smother() {
         let (board,color_to_play) = parse_fen("6rk/6pp/8/4N3/8/8/B7/4K3" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999,&mut ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999,&ZobristHash::new());
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-15,255));
     }
 
     #[test]
     fn test_two_move() {
         let (board,color_to_play) = parse_fen("2r4k/6pp/8/4N3/8/1Q6/B7/4K3" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,5,1,0,999,-999,&mut ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,5,1,0,999,-999,&ZobristHash::new());
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-6,252));
     }
 
     #[test]
     fn test_two_move_2() {
         let (board,color_to_play) = parse_fen("r1bq2r1/b4pk1/p1pp1p2/1p2pP2/1P2P1PB/3P4/1PPQ2P1/R3K2R" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,5,1,0,999,-999,&mut ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,5,1,0,999,-999,&ZobristHash::new());
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Queen),-28,245));
     }
 }

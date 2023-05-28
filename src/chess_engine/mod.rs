@@ -149,9 +149,9 @@ impl Piece {
                 let mut available_moves: Vec<i8> = vec![];
                 let new_position_forward_one = position as i8 + 8 * direction;
                 let new_position_forward_two = position as i8 + 16 * direction;
-                if new_position_forward_one >= 0 && new_position_forward_one <= 63 && board[new_position_forward_one as usize] == Option::None {
+                if new_position_forward_one >= 0 && new_position_forward_one <= 63 && board[new_position_forward_one as usize] == None {
                     available_moves.push(8 * direction);
-                    if !self.has_moved && new_position_forward_two >= 0 && new_position_forward_two <= 63 && board[new_position_forward_two as usize] == Option::None {
+                    if !self.has_moved && new_position_forward_two >= 0 && new_position_forward_two <= 63 && board[new_position_forward_two as usize] == None {
                         available_moves.push(16 * direction);
                     }
                 }
@@ -317,7 +317,7 @@ impl Piece {
         };
 
         let mut new_board = *board;
-        new_board[position] = Option::None;
+        new_board[position] = None;
         new_board[new_position] = Some(*self);
 
         Ok((piece_there_value,new_board))
@@ -333,7 +333,7 @@ pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
             match c {
                 '1'..='8' => {
                     for i in 0..c.to_digit(10).unwrap() {
-                        board[rank * 8 + offset + index + i as usize] = Option::None;
+                        board[rank * 8 + offset + index + i as usize] = None;
                     }
                     offset += c.to_digit(10).unwrap() as usize - 1;
                 },
@@ -380,15 +380,15 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
     };
 
     //Checking Transposition table 
-    // let hash = 2;
-    // if let transposition_table_value = Some(transposition_table.get(&hash)) {
-    //     return transposition_table_value
-    // }
+    let hash = 2;
+    if let Some(transposition_table_value) = transposition_table.get(&hash) {
+        return (None,0,*transposition_table_value);
+    }
     /////
 
     let mut best_score: i32 = -sign * 500;
     let mut best_move = 0;
-    let mut best_move_piece = Option::None;
+    let mut best_move_piece = None;
     for square in board {
         let piece = match square {
             Some(piece) => piece,

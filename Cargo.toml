@@ -10,4 +10,5 @@ gloo = "0.8.0"
 rand = "0.8.5"
 wasm-bindgen = "0.2.86"
 web-sys = "0.3.63"
+getrandom = { version = "0.2", features = ["js"] }
 yew = { version = "0.20.0", features = ["csr"] }

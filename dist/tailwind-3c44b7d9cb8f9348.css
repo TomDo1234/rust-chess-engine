@@ -526,12 +526,28 @@ video {
   position: static;
 }
 
+.mb-8 {
+  margin-bottom: 2rem;
+}
+
 .flex {
   display: flex;
 }
 
+.h-\[500px\] {
+  height: 500px;
+}
+
 .h-screen {
   height: 100vh;
+}
+
+.w-\[500px\] {
+  width: 500px;
+}
+
+.w-full {
+  width: 100%;
 }
 
 .flex-1 {

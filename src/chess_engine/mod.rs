@@ -19,8 +19,8 @@ pub enum PieceType {
 
 #[derive(Clone,PartialEq,Debug,Copy)]
 pub struct Piece {
-    color: Color,
-    piece_type: PieceType,
+    pub color: Color,
+    pub piece_type: PieceType,
     value: u8, 
     has_moved: bool
 }

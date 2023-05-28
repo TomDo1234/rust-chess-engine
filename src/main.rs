@@ -9,7 +9,7 @@ use web_sys::HtmlInputElement;
 
 #[function_component]
 fn App() -> Html {
-    let board = use_state(|| [None; 64]);
+    let board = use_state(|| parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR").0);
 
     let submit_fen = {
         let board = board.clone();
@@ -30,7 +30,7 @@ fn App() -> Html {
 
     html! {
         <div class="flex flex-col justify-center items-center h-screen" >
-            <input class={classes!("border border-1 border-black border-solid".to_owned())} onkeypress={submit_fen} />
+            <input class={classes!("border border-1 border-black border-solid mb-8".to_owned())} onkeypress={submit_fen} />
             <ChessBoard board={*board} />
         </div>
     }

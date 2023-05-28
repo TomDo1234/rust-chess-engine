@@ -25,13 +25,16 @@ impl ZobristHash {
         }
     }
 
-    pub fn hash(&self, board: &[usize; BOARD_SIZE]) -> u64 {
+    pub fn hash(&self, board: &[Option<Piece>; BOARD_SIZE]) -> u64 {
         let mut h = 0;
 
         for i in 0..PIECES.len() {
+            let checked_piece = PIECES[i];
             for j in 0..BOARD_SIZE {
-                if board[j] == i {
-                    h ^= self.zobrist_table[i][j];
+                if let Some(piece) = board[j] {
+                    if piece.color == checked_piece.color && piece.piece_type == checked_piece.piece_type {
+                        h ^= self.zobrist_table[i][j];
+                    }
                 }
             }
         }

@@ -1,4 +1,4 @@
-use crate::{chess_engine::{parse_fen, calculate_position}, components::chess_board::ChessBoard};
+use crate::{chess_engine::{parse_fen, calculate_position, transposition_table::ZobristHash}, components::chess_board::ChessBoard};
 mod chess_engine;
 mod components;
 
@@ -22,7 +22,7 @@ fn App() -> Html {
             let value = input.value();
             log!(value.clone());
             let (result_board,color_to_play) = parse_fen(&value.clone() /*&fen_input.trim() */);
-            let (best_move_piece_1,best_move_1,max_1) = calculate_position(&result_board,color_to_play,4,1,0,999,-999);
+            let (best_move_piece_1,best_move_1,max_1) = calculate_position(&result_board,color_to_play,4,1,0,999,-999,&mut ZobristHash::new());
             log!(format!("{:?} {} {}",best_move_piece_1,best_move_1,max_1));
             board.set(result_board);
         })

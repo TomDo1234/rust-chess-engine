@@ -379,13 +379,6 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
         Color::Black => -1
     };
 
-    //Checking Transposition table 
-    let hash = 2;
-    if let Some(transposition_table_value) = transposition_table.get(&hash) {
-        return (None,0,*transposition_table_value);
-    }
-    /////
-
     let mut best_score: i32 = -sign * 500;
     let mut best_move = 0;
     let mut best_move_piece = None;
@@ -403,6 +396,15 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
                         Err(_) => (0,*board)
                     };
                     take_value *= sign;
+
+                    //Checking Transposition table 
+                    // let hash = zobrist_hasher.hash(&new_board,current_recursion);
+                    // if let Some(transposition_table_value) = transposition_table.get(&hash) {
+                    //     if current_recursion > 1 {
+                    //         return (None,0,*transposition_table_value);
+                    //     }
+                    // }
+                    /////
                     
                     if take_value.abs() == 255 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
                         return (Some(piece.piece_type),movement,take_value)

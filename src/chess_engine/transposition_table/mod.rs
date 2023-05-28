@@ -25,7 +25,7 @@ impl ZobristHash {
         }
     }
 
-    pub fn hash(&self, board: &[Option<Piece>; BOARD_SIZE]) -> u64 {
+    pub fn hash(&self, board: &[Option<Piece>; BOARD_SIZE],current_recursion: u8) -> u64 {
         let mut h = 0;
 
         for i in 0..PIECES.len() {
@@ -38,7 +38,8 @@ impl ZobristHash {
                 }
             }
         }
-
+        h ^= current_recursion as u64;
+        
         h
     }
 }

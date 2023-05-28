@@ -17,29 +17,37 @@ pub fn ChessBoard(props: &Props) -> Html {
                     <div class={classes!("flex-1 flex w-full".to_owned())} >
                         {
                             (0..8).map(|colindex| {
-                                let piece = match board[8 * rowindex + colindex] {
-                                    None => return html!{ <img class={classes!("flex-1")} src="" /> },
+                                let index = 8 * rowindex + colindex;
+                                
+                                let bg_class = match (index + rowindex) % 2 {
+                                    0 => "bg-[#fdce9e]", 
+                                    1 => "bg-[#d18b47]",
+                                    _ => ""
+                                };
+
+                                let piece = match board[index] {
+                                    None => return html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="" /> },
                                     Some(piece) => piece
                                 };
 
                                 if piece.color == Color::White {
                                     match piece.piece_type {
-                                        PieceType::Pawn => html!{ <img class={classes!("flex-1")} src="images/white_pawn.svg" /> },
-                                        PieceType::Knight => html!{ <img class={classes!("flex-1")} src="images/white_knight.svg" /> },
-                                        PieceType::Bishop => html!{ <img class={classes!("flex-1")} src="images/white_bishop.svg" /> },
-                                        PieceType::Rook => html!{ <img class={classes!("flex-1")} src="images/white_rook.svg" /> },
-                                        PieceType::Queen => html!{ <img class={classes!("flex-1")} src="images/white_queen.svg" /> },
-                                        PieceType::King => html!{ <img class={classes!("flex-1")} src="images/white_king.svg" /> },
+                                        PieceType::Pawn => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/white_pawn.svg" /> },
+                                        PieceType::Knight => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/white_knight.svg" /> },
+                                        PieceType::Bishop => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/white_bishop.svg" /> },
+                                        PieceType::Rook => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/white_rook.svg" /> },
+                                        PieceType::Queen => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/white_queen.svg" /> },
+                                        PieceType::King => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/white_king.svg" /> },
                                     }
                                 }
                                 else {
                                     match piece.piece_type {
-                                        PieceType::Pawn => html!{ <img class={classes!("flex-1")} src="images/black_pawn.svg" /> },
-                                        PieceType::Knight => html!{ <img class={classes!("flex-1")} src="images/black_knight.svg" /> },
-                                        PieceType::Bishop => html!{ <img class={classes!("flex-1")} src="images/black_bishop.svg" /> },
-                                        PieceType::Rook => html!{ <img class={classes!("flex-1")} src="images/black_rook.svg" /> },
-                                        PieceType::Queen => html!{ <img class={classes!("flex-1")} src="images/black_queen.svg" /> },
-                                        PieceType::King => html!{ <img class={classes!("flex-1")} src="images/black_king.svg" /> },
+                                        PieceType::Pawn => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/black_pawn.svg" /> },
+                                        PieceType::Knight => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/black_knight.svg" /> },
+                                        PieceType::Bishop => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/black_bishop.svg" /> },
+                                        PieceType::Rook => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/black_rook.svg" /> },
+                                        PieceType::Queen => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/black_queen.svg" /> },
+                                        PieceType::King => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/black_king.svg" /> },
                                     }
                                 }
                             }).collect::<Html>()

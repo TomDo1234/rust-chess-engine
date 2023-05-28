@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{error::Error,ptr};
+use std::{error::Error,ptr, collections::HashMap};
 
 use self::transposition_table::ZobristHash;
 pub mod transposition_table;
@@ -371,13 +371,21 @@ pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     (board,Color::White)
 }
 
-pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,
-                            current_recursion: u8,value: i32,mut alpha: i32,mut beta: i32,zobrist_hasher: &ZobristHash) -> (Option<PieceType>,i8,i32) {
+pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8,
+                        value: i32,mut alpha: i32,mut beta: i32,zobrist_hasher: &ZobristHash,transposition_table: &HashMap<u64,i32>) -> (Option<PieceType>,i8,i32) {
+
     let sign = match whos_move {
         Color::White => 1,
         Color::Black => -1
     };
-    
+
+    //Checking Transposition table 
+    // let hash = 2;
+    // if let transposition_table_value = Some(transposition_table.get(&hash)) {
+    //     return transposition_table_value
+    // }
+    /////
+
     let mut best_score: i32 = -sign * 500;
     let mut best_move = 0;
     let mut best_move_piece = Option::None;
@@ -402,7 +410,7 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
                     
                     if recursion_level != current_recursion {
                         let foresight_value = calculate_position(&new_board, if whos_move == Color::White { Color::Black } else { Color::White },
-                                                    recursion_level, current_recursion + 1,value + take_value,alpha,beta,zobrist_hasher).2;
+                                                    recursion_level, current_recursion + 1,value + take_value,alpha,beta,zobrist_hasher,&transposition_table).2;
                                                     
                         take_value += foresight_value;
 
@@ -435,54 +443,63 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
 
 #[cfg(test)]
 mod tests {
-    use crate::{parse_fen, calculate_position,chess_engine::{PieceType, transposition_table::ZobristHash}};
+    use std::collections::HashMap;
+
+    use crate::{parse_fen, calculate_position,chess_engine::{PieceType, transposition_table::{ZobristHash}}};
 
     #[test]
     fn test_simple_take() {
+        let mut transposition_table: HashMap<u64, i32> = HashMap::new();
         let (board,color_to_play) = parse_fen("rnb1kbnr/pppppppp/5q2/8/4N3/8/PPPPPPPP/R1BQKBNR" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,0,0,&ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,0,0,&ZobristHash::new(),&transposition_table);
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-15,6));
     }
 
     #[test]
     fn test_scholar() {
+        let mut transposition_table: HashMap<u64, i32> = HashMap::new();
         let (board,color_to_play) = parse_fen("rnbqkbnr/pppppppp/8/8/2B5/4PQ2/PPPP1PPP/RNB1K1NR" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999,&ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999,&ZobristHash::new(),&transposition_table);
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Bishop),-21,253));
     }
 
     #[test]
     fn test_back_rank() {
+        let mut transposition_table: HashMap<u64, i32> = HashMap::new();
         let (board,color_to_play) = parse_fen("6k1/5ppp/8/8/8/8/8/1Q2K3" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,3,1,0,999,-999,&ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,3,1,0,999,-999,&ZobristHash::new(),&transposition_table);
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Queen),-56,255));
     }
 
     #[test]
     fn test_fork() {
+        let mut transposition_table: HashMap<u64, i32> = HashMap::new();
         let (board,color_to_play) = parse_fen("2r3k1/5ppp/8/3N4/8/8/8/4K3" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,3,1,0,999,-999,&ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,3,1,0,999,-999,&ZobristHash::new(),&transposition_table);
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-15,5));
     }
 
     #[test]
     fn test_smother() {
+        let mut transposition_table: HashMap<u64, i32> = HashMap::new();
         let (board,color_to_play) = parse_fen("6rk/6pp/8/4N3/8/8/B7/4K3" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999,&ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,4,1,0,999,-999,&ZobristHash::new(),&transposition_table);
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-15,255));
     }
 
     #[test]
     fn test_two_move() {
+        let mut transposition_table: HashMap<u64, i32> = HashMap::new();
         let (board,color_to_play) = parse_fen("2r4k/6pp/8/4N3/8/1Q6/B7/4K3" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,5,1,0,999,-999,&ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,5,1,0,999,-999,&ZobristHash::new(),&transposition_table);
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-6,252));
     }
 
     #[test]
     fn test_two_move_2() {
+        let mut transposition_table: HashMap<u64, i32> = HashMap::new();
         let (board,color_to_play) = parse_fen("r1bq2r1/b4pk1/p1pp1p2/1p2pP2/1P2P1PB/3P4/1PPQ2P1/R3K2R" /*&fen_input.trim() */);
-        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,5,1,0,999,-999,&ZobristHash::new());
+        let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,5,1,0,999,-999,&ZobristHash::new(),&transposition_table);
         assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Queen),-28,245));
     }
 }

@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{chess_engine::{parse_fen, calculate_position, transposition_table::ZobristHash}, components::chess_board::ChessBoard};
 mod chess_engine;
 mod components;
@@ -13,6 +15,7 @@ fn App() -> Html {
 
     let submit_fen = {
         let board = board.clone();
+        let mut transposition_table: HashMap<u64,i32> = HashMap::new();
         Callback::from(move |event: KeyboardEvent| {
             if event.key() != "Enter".to_owned() {
                 return;
@@ -22,7 +25,7 @@ fn App() -> Html {
             let value = input.value();
             log!(value.clone());
             let (result_board,color_to_play) = parse_fen(&value.clone() /*&fen_input.trim() */);
-            let (best_move_piece_1,best_move_1,max_1) = calculate_position(&result_board,color_to_play,4,1,0,999,-999,&ZobristHash::new());
+            let (best_move_piece_1,best_move_1,max_1) = calculate_position(&result_board,color_to_play,4,1,0,999,-999,&ZobristHash::new(),&transposition_table);
             log!(format!("{:?} {} {}",best_move_piece_1,best_move_1,max_1));
             board.set(result_board);
         })

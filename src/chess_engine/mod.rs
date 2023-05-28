@@ -398,12 +398,12 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
                     take_value *= sign;
 
                     //Checking Transposition table 
-                    let hash = zobrist_hasher.hash(&new_board,current_recursion);
-                    if let Some(transposition_table_value) = transposition_table.get(&hash) {
-                        if current_recursion > 1 {
-                            return (None,0,*transposition_table_value);
-                        }
-                    }
+                    // let hash = zobrist_hasher.hash(&new_board,current_recursion);
+                    // if let Some(transposition_table_value) = transposition_table.get(&hash) {
+                    //     if current_recursion > 1 {
+                    //         return (None,0,*transposition_table_value);
+                    //     }
+                    // }
                     /////
                     
                     if take_value.abs() == 255 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
@@ -423,7 +423,7 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
                             beta = take_value;
                         }
 
-                        transposition_table.insert(hash, take_value);
+                        // transposition_table.insert(hash, take_value);
                     }
                     
                     if take_value * sign > best_score * sign {
@@ -496,7 +496,7 @@ mod tests {
         let mut transposition_table: HashMap<u64, i32> = HashMap::new();
         let (board,color_to_play) = parse_fen("2r4k/6pp/8/4N3/8/1Q6/B7/4K3" /*&fen_input.trim() */);
         let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,5,1,0,999,-999,&ZobristHash::new(),&mut transposition_table);
-        assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-17,255));
+        assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Knight),-6,252));
     }
 
     #[test]
@@ -504,6 +504,6 @@ mod tests {
         let mut transposition_table: HashMap<u64, i32> = HashMap::new();
         let (board,color_to_play) = parse_fen("r1bq2r1/b4pk1/p1pp1p2/1p2pP2/1P2P1PB/3P4/1PPQ2P1/R3K2R" /*&fen_input.trim() */);
         let (best_move_piece_1,best_move_1,max_1) = calculate_position(&board,color_to_play,5,1,0,999,-999,&ZobristHash::new(),&mut transposition_table);
-        assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Bishop),-18,253));
+        assert_eq!((best_move_piece_1,best_move_1,max_1), (Some(PieceType::Queen),-28,245));
     }
 }

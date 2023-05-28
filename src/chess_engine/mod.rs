@@ -379,6 +379,13 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
         Color::Black => -1
     };
 
+    //Checking Transposition table 
+    let hash = zobrist_hasher.hash(board,current_recursion);
+    if let Some(transposition_table_value) = transposition_table.get(&hash) {
+        return (None,0,*transposition_table_value);
+    }
+    /////
+
     let mut best_score: i32 = -sign * 500;
     let mut best_move = 0;
     let mut best_move_piece = None;
@@ -397,14 +404,6 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
                     };
                     take_value *= sign;
 
-                    //Checking Transposition table 
-                    // let hash = zobrist_hasher.hash(&new_board,current_recursion);
-                    // if let Some(transposition_table_value) = transposition_table.get(&hash) {
-                    //     if current_recursion > 1 {
-                    //         return (None,0,*transposition_table_value);
-                    //     }
-                    // }
-                    /////
                     
                     if take_value.abs() == 255 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
                         return (Some(piece.piece_type),movement,take_value)
@@ -422,8 +421,6 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
                         else if whos_move == Color::Black && foresight_value < beta {
                             beta = take_value;
                         }
-
-                        // transposition_table.insert(hash, take_value);
                     }
                     
                     if take_value * sign > best_score * sign {
@@ -442,6 +439,9 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
             }
         }
     }
+
+    transposition_table.insert(hash, best_score);
+
     return (best_move_piece,best_move,best_score);
 }
 

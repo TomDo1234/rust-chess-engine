@@ -7,6 +7,7 @@ const PIECES: [Piece; 12] = [BLACK_KING,BLACK_QUEEN,BLACK_BISHOP,BLACK_ROOK,BLAC
 
 pub struct ZobristHash {
     zobrist_table: [[u64; BOARD_SIZE]; PIECES.len()],
+    other_data_table: [u64; 9]
 }
 
 impl ZobristHash {
@@ -20,8 +21,14 @@ impl ZobristHash {
             }
         }
 
+        let mut other_data_table = [0; 9];
+        for i in 0..9 {
+            other_data_table[i] = rng.gen::<u64>();
+        }
+
         Self {
-            zobrist_table
+            zobrist_table,
+            other_data_table
         }
     }
 
@@ -38,7 +45,7 @@ impl ZobristHash {
                 }
             }
         }
-        h ^= current_recursion as u64;
+        h ^= self.other_data_table[current_recursion as usize - 1];
         
         h
     }

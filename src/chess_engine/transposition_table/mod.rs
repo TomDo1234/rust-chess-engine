@@ -1,18 +1,20 @@
 use rand::Rng;
 
+use super::{Piece, BLACK_KING, BLACK_QUEEN, BLACK_BISHOP, BLACK_ROOK, BLACK_KNIGHT, BLACK_PAWN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_PAWN, WHITE_QUEEN, WHITE_ROOK};
+
 const BOARD_SIZE: usize = 64;  // 8x8 board.
-const PIECE_TYPES: usize = 12;  // 12 piece types (e.g., Black and White + 6 from each).
+const PIECES: [Piece; 12] = [BLACK_KING,BLACK_QUEEN,BLACK_BISHOP,BLACK_ROOK,BLACK_KNIGHT,BLACK_PAWN,WHITE_KING,WHITE_BISHOP,WHITE_KNIGHT,WHITE_PAWN,WHITE_QUEEN,WHITE_ROOK];
 
 pub struct ZobristHash {
-    zobrist_table: [[u64; BOARD_SIZE]; PIECE_TYPES],
+    zobrist_table: [[u64; BOARD_SIZE]; PIECES.len()],
 }
 
 impl ZobristHash {
     pub fn new() -> Self {
         let mut rng = rand::thread_rng();
-        let mut zobrist_table = [[0; BOARD_SIZE]; PIECE_TYPES];
+        let mut zobrist_table = [[0; BOARD_SIZE]; PIECES.len()];
 
-        for i in 0..PIECE_TYPES {
+        for i in 0..PIECES.len() {
             for j in 0..BOARD_SIZE {
                 zobrist_table[i][j] = rng.gen::<u64>();
             }
@@ -26,7 +28,7 @@ impl ZobristHash {
     pub fn hash(&self, board: &[usize; BOARD_SIZE]) -> u64 {
         let mut h = 0;
 
-        for i in 0..PIECE_TYPES {
+        for i in 0..PIECES.len() {
             for j in 0..BOARD_SIZE {
                 if board[j] == i {
                     h ^= self.zobrist_table[i][j];

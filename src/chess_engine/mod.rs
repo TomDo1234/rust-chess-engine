@@ -43,84 +43,84 @@ impl Error for ChessEngineError {}
 
 
 
-static WHITE_PAWN: Piece = Piece {
+const WHITE_PAWN: Piece = Piece {
     color: Color::White,
     piece_type: PieceType::Pawn,
     value: 1,
     has_moved: false
 };
 
-static WHITE_KNIGHT: Piece = Piece {
+const WHITE_KNIGHT: Piece = Piece {
     color: Color::White,
     piece_type: PieceType::Knight,
     value: 3,
     has_moved: false
 };
 
-static WHITE_BISHOP: Piece = Piece {
+const WHITE_BISHOP: Piece = Piece {
     color: Color::White,
     piece_type: PieceType::Bishop,
     value: 3,
     has_moved: false
 };
 
-static WHITE_ROOK: Piece = Piece {
+const WHITE_ROOK: Piece = Piece {
     color: Color::White,
     piece_type: PieceType::Rook,
     value: 5,
     has_moved: false
 };
 
-static WHITE_QUEEN: Piece = Piece {
+const WHITE_QUEEN: Piece = Piece {
     color: Color::White,
     piece_type: PieceType::Queen,
     value: 9,
     has_moved: false
 };
 
-static WHITE_KING: Piece = Piece {
+const WHITE_KING: Piece = Piece {
     color: Color::White,
     piece_type: PieceType::King,
     value: 255,
     has_moved: false
 };
 
-static BLACK_PAWN: Piece = Piece {
+const BLACK_PAWN: Piece = Piece {
     color: Color::Black,
     piece_type: PieceType::Pawn,
     value: 1,
     has_moved: false
 };
 
-static BLACK_KNIGHT: Piece = Piece {
+const BLACK_KNIGHT: Piece = Piece {
     color: Color::Black,
     piece_type: PieceType::Knight,
     value: 3,
     has_moved: false
 };
 
-static BLACK_BISHOP: Piece = Piece {
+const BLACK_BISHOP: Piece = Piece {
     color: Color::Black,
     piece_type: PieceType::Bishop,
     value: 3,
     has_moved: false
 };
 
-static BLACK_ROOK: Piece = Piece {
+const BLACK_ROOK: Piece = Piece {
     color: Color::Black,
     piece_type: PieceType::Rook,
     value: 5,
     has_moved: false
 };
 
-static BLACK_QUEEN: Piece = Piece {
+const BLACK_QUEEN: Piece = Piece {
     color: Color::Black,
     piece_type: PieceType::Queen,
     value: 9,
     has_moved: false
 };
 
-static BLACK_KING: Piece = Piece {
+const BLACK_KING: Piece = Piece {
     color: Color::Black,
     piece_type: PieceType::King,
     value: 255,

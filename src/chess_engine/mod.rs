@@ -372,7 +372,7 @@ pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
 }
 
 pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,
-                            current_recursion: u8,value: i32,mut alpha: i32,mut beta: i32,transposition_table: &ZobristHash) -> (Option<PieceType>,i8,i32) {
+                            current_recursion: u8,value: i32,mut alpha: i32,mut beta: i32,zobrist_hasher: &ZobristHash) -> (Option<PieceType>,i8,i32) {
     let sign = match whos_move {
         Color::White => 1,
         Color::Black => -1
@@ -402,7 +402,7 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
                     
                     if recursion_level != current_recursion {
                         let foresight_value = calculate_position(&new_board, if whos_move == Color::White { Color::Black } else { Color::White },
-                                                    recursion_level, current_recursion + 1,value + take_value,alpha,beta,transposition_table).2;
+                                                    recursion_level, current_recursion + 1,value + take_value,alpha,beta,zobrist_hasher).2;
                                                     
                         take_value += foresight_value;
 

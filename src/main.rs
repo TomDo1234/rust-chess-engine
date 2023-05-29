@@ -31,17 +31,28 @@ fn App() -> Html {
         Callback::from(move |from_and_to: (Option<usize>,usize)| {
             let mut new_board = *board;
             let (from,to) = from_and_to;
-            if let Some(from) = from {
-                if let Some(moved_piece) = &new_board[from] {
-                    let movement = to as i8 - from as i8;
-                    if let Ok(moves) = moved_piece.get_moves(&new_board) {
-                        if moves.contains(&movement) {
-                            new_board[to] = new_board[from];
-                            new_board[from] = None;
-                            board.set(new_board);
-                        }
-                    }
-                }
+            
+            let from = match from {
+                Some(from) => from,
+                None => return
+            };
+
+            let moved_piece = match &new_board[from] {
+                Some(piece) => piece,
+                None => return
+            };
+
+            let movement = to as i8 - from as i8;
+
+            let moves = match moved_piece.get_moves(&new_board) {
+                Ok(moves) => moves,
+                Err(_) => return
+            };
+            
+            if moves.contains(&movement) {
+                new_board[to] = new_board[from];
+                new_board[from] = None;
+                board.set(new_board);
             }
         })
     };

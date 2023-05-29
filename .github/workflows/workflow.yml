@@ -55,7 +55,9 @@ jobs:
           npm i -g tailwindcss
           Invoke-WebRequest -Uri "https://github.com/thedodd/trunk/releases/download/v0.16.0/trunk-x86_64-pc-windows-msvc.zip" -OutFile "trunk-x86_64-pc-windows-msvc.zip"
           Expand-Archive -Path "trunk-x86_64-pc-windows-msvc.zip" -DestinationPath "frontend"
-          Move-Item -Path "frontend\trunk.exe" -Destination $env:PATH -Force
+          $relativePath = "frontend\trunk.exe"
+          $fullPath = Join-Path -Path (Get-Location) -ChildPath $relativePath
+          $env:Path += ";" + $fullPath
           rustup target add wasm32-unknown-unknown
 
       - name: Build and Release

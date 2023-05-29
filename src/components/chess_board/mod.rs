@@ -33,7 +33,7 @@ pub fn ChessBoard(props: &Props) -> Html {
                                 let drop_piece = {
                                     let selected_piece_index = selected_piece_index.clone();
                                     let board = *board;
-                                    Callback::from(move |e: DragEvent| {
+                                    Callback::from(move |_| {
                                         if let Some(new_index) = *selected_piece_index {
                                             let mut board = board;
                                             board[index] = board[new_index];

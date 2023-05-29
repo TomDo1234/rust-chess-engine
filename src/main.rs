@@ -31,6 +31,17 @@ fn App() -> Html {
         })
     };
 
+    let on_piece_drop = {
+        let board = board.clone();
+        Callback::from(move |from_and_to: (usize,usize)| {
+            let mut new_board = *board;
+            let (from,to) = from_and_to;
+            new_board[to] = new_board[from];
+            new_board[from] = None;
+            board.set(new_board);
+        })
+    };
+
     html! {
         <div class="flex flex-col justify-center items-center h-screen" >
             <input class={classes!("border border-1 border-black border-solid mb-8".to_owned())} onkeypress={submit_fen} />

@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest,ubuntu-20.04]
+        platform: [macos-latest,ubuntu-20.04,windows-latest]
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -38,13 +38,23 @@ jobs:
             echo "TRUNK_RELEASE=trunk-x86_64-unknown-linux-gnu.tar.gz" >> $GITHUB_ENV
           fi
 
-      - name: Install trunk and tailwindcss
+      - name: Install trunk and tailwindcss (Mac and Linux)
+        if: matrix.platform == 'ubuntu-20.04' || matrix.platform == 'macos-latest'
         run: |
           npm i -g tailwindcss
           TRUNK_RELEASE="${{env.TRUNK_RELEASE}}"
           wget -qO- https://github.com/thedodd/trunk/releases/download/v0.16.0/$TRUNK_RELEASE | tar -xzf-
           chmod +x trunk
-          mv trunk frontend
+          mv trunk /usr/local/bin
+          rustup target add wasm32-unknown-unknown
+
+      - name: Install trunk and tailwindcss (Windows)
+        if: matrix.platform == 'windows-latest'
+        run: |
+          npm i -g tailwindcss
+          Invoke-WebRequest -Uri "https://github.com/thedodd/trunk/releases/download/v0.16.0/trunk-x86_64-pc-windows-msvc.zip" -OutFile "trunk-x86_64-pc-windows-msvc.zip"
+          Expand-Archive -Path "trunk-x86_64-pc-windows-msvc.zip" -DestinationPath "frontend"
+          Move-Item -Path "frontend\trunk.exe" -Destination $env:PATH -Force
           rustup target add wasm32-unknown-unknown
 
       - name: Build and Release

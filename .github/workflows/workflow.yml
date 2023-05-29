@@ -33,9 +33,9 @@ jobs:
       - name: Set platform variable
         run: |
           if [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
-            echo "::set-env name=TRUNK_RELEASE::trunk-x86_64-apple-darwin.tar.gz"
+            echo "TRUNK_RELEASE=trunk-x86_64-apple-darwin.tar.gz" >> $GITHUB_ENV
           elif [[ "${{ matrix.platform }}" == "ubuntu-20.04" ]]; then
-            echo "::set-env name=TRUNK_RELEASE::trunk-x86_64-unknown-linux-gnu.tar.gz"
+            echo "TRUNK_RELEASE=trunk-x86_64-unknown-linux-gnu.tar.gz" >> $GITHUB_ENV
           fi
 
       - name: Install trunk and tailwindcss

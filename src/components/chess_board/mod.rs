@@ -1,6 +1,5 @@
 use web_sys::DragEvent;
 use yew::{function_component, Properties, Html, html, classes, Callback, use_state, UseStateHandle};
-use gloo::console::log;
 
 use crate::chess_engine::{Piece,Color, PieceType};
 

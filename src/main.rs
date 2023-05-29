@@ -56,8 +56,14 @@ fn App() -> Html {
                 new_board[from] = None;
                 board.set(new_board);
 
+                log!("Thinking...");
                 let mut transposition_table: HashMap<u64, i32> = HashMap::new();
-                let (best_move_piece,best_move,_) = calculate_position(&new_board,Color::Black,4,1,0,999,-999,&ZobristHash::new(),&mut transposition_table);
+                let (best_move_original_position,best_move,_) = calculate_position(&new_board,Color::Black,4,1,0,999,-999,&ZobristHash::new(),&mut transposition_table);
+
+                let new_position = best_move_original_position as i8 + best_move;
+                new_board[new_position as usize] = new_board[best_move_original_position];
+                new_board[best_move_original_position] = None;
+                board.set(new_board);
             }
         })
     };

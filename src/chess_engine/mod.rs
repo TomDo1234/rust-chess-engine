@@ -449,7 +449,7 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
 mod tests {
     use std::collections::HashMap;
 
-    use crate::{parse_fen,chess_engine::{PieceType, transposition_table::{ZobristHash}, calculate_position}};
+    use crate::{parse_fen,chess_engine::{transposition_table::{ZobristHash}, calculate_position}};
 
     #[test]
     fn test_simple_take() {

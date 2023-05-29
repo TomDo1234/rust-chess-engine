@@ -7,11 +7,12 @@ use crate::chess_engine::{Piece,Color, PieceType};
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
     pub board: [Option<Piece>; 64],
+    pub on_piece_drop: Callback<(usize,usize)>
 }
 
 #[function_component]
 pub fn ChessBoard(props: &Props) -> Html {
-    let Props { board } = props;
+    let Props { board,on_piece_drop } = props;
 
     let selected_piece_index: UseStateHandle<Option<usize>> = use_state(|| None);
 

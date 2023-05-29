@@ -45,7 +45,7 @@ fn App() -> Html {
     html! {
         <div class="flex flex-col justify-center items-center h-screen" >
             <input class={classes!("border border-1 border-black border-solid mb-8".to_owned())} onkeypress={submit_fen} />
-            <ChessBoard board={*board} />
+            <ChessBoard board={*board} on_piece_drop={on_piece_drop.clone()} />
         </div>
     }
 }

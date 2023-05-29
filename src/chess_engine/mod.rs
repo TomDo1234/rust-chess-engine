@@ -299,7 +299,7 @@ impl Piece {
         Ok(moves)
     }
 
-    fn do_move(&self,board: &[Option<Piece>; 64],movement: i8) -> Result<(usize,u8,[Option<Piece>; 64]),ChessEngineError> {
+    pub fn do_move(&self,board: &[Option<Piece>; 64],movement: i8) -> Result<(usize,u8,[Option<Piece>; 64]),ChessEngineError> {
         let position = board.iter().position(|r| match r {
             None => false,
             Some(r) => ptr::eq(r,self)
@@ -318,7 +318,17 @@ impl Piece {
 
         let mut new_board = *board;
         new_board[position] = None;
-        new_board[new_position] = Some(*self);
+
+        let moved_piece = match self.piece_type { //Mutate if its a pawn
+            PieceType::Pawn => {
+                let mut new_pawn = self.clone();
+                new_pawn.has_moved = true;
+                new_pawn
+            },
+            _ => *self
+        };
+
+        new_board[new_position] = Some(moved_piece);
 
         Ok((position,piece_there_value,new_board))
     }

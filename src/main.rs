@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{chess_engine::{parse_fen, calculate_position, Color, transposition_table::ZobristHash}, components::chess_board::ChessBoard};
+use crate::{chess_engine::{parse_fen, calculate_position, Color, transposition_table::ZobristHash, PieceType}, components::chess_board::ChessBoard};
 mod chess_engine;
 mod components;
 
@@ -31,7 +31,7 @@ fn App() -> Html {
     let on_piece_drop = {
         let board = board.clone();
         Callback::from(move |from_and_to: (Option<usize>,usize)| {
-            let mut new_board = *board;
+            let new_board = *board;
             let (from,to) = from_and_to;
             
             let from = match from {
@@ -52,8 +52,11 @@ fn App() -> Html {
             };
 
             if moves.contains(&movement) {
-                new_board[to] = new_board[from];
-                new_board[from] = None;
+                let mut new_board = match moved_piece.do_move(&new_board, movement) {
+                    Ok((_,_,new_board)) => new_board,
+                    Err(_) => return
+                };
+
                 board.set(new_board);
 
                 log!("Thinking...");

@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-20.04, windows-latest]
+        platform: [windows-latest]
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -64,6 +64,7 @@ jobs:
           cd frontend
           tailwindcss
           Remove-Item -Path "Trunk.toml"
+          Get-Content app.css
           
       - name: Build and Release
         uses: tauri-apps/tauri-action@v0

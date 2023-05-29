@@ -62,8 +62,9 @@ jobs:
           $env:Path += ";" + $fullPath
           rustup target add wasm32-unknown-unknown
           cd frontend
-          tailwindcss
+          tailwindcss >> app.css
           Remove-Item -Path "Trunk.toml"
+          Get-Content app.css
           
       - name: Build and Release
         uses: tauri-apps/tauri-action@v0

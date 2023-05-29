@@ -53,9 +53,10 @@ jobs:
         if: matrix.platform == 'windows-latest'
         run: |
           npm i -g tailwindcss
+          $env:Path += ";" + "%AppData%\npm"
           Invoke-WebRequest -Uri "https://github.com/thedodd/trunk/releases/download/v0.16.0/trunk-x86_64-pc-windows-msvc.zip" -OutFile "trunk-x86_64-pc-windows-msvc.zip"
           Expand-Archive -Path "trunk-x86_64-pc-windows-msvc.zip" -DestinationPath "frontend"
-          $relativePath = "frontend\trunk.exe"
+          $relativePath = "frontend"
           $fullPath = Join-Path -Path (Get-Location) -ChildPath $relativePath
           $env:Path += ";" + $fullPath
           rustup target add wasm32-unknown-unknown

@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [windows-latest]
+        platform: [macos-latest, ubuntu-20.04, windows-latest]
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -61,10 +61,10 @@ jobs:
           $fullPath = Join-Path -Path (Get-Location) -ChildPath $relativePath
           $env:Path += ";" + $fullPath
           rustup target add wasm32-unknown-unknown
-          $env:Path
-          trunk 
+          cd frontend
           tailwindcss
-
+          Remove-Item -Path "Trunk.toml"
+          
       - name: Build and Release
         uses: tauri-apps/tauri-action@v0
         env:

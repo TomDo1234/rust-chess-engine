@@ -33,12 +33,14 @@ fn App() -> Html {
 
     let on_piece_drop = {
         let board = board.clone();
-        Callback::from(move |from_and_to: (usize,usize)| {
+        Callback::from(move |from_and_to: (Option<usize>,usize)| {
             let mut new_board = *board;
             let (from,to) = from_and_to;
-            new_board[to] = new_board[from];
-            new_board[from] = None;
-            board.set(new_board);
+            if let Some(from) = from {
+                new_board[to] = new_board[from];
+                new_board[from] = None;
+                board.set(new_board);
+            }
         })
     };
 

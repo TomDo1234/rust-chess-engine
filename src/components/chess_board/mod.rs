@@ -7,7 +7,7 @@ use crate::chess_engine::{Piece,Color, PieceType};
 #[derive(Clone, PartialEq, Properties)]
 pub struct Props {
     pub board: [Option<Piece>; 64],
-    pub on_piece_drop: Callback<(usize,usize)>
+    pub on_piece_drop: Callback<(Option<usize>,usize)>
 }
 
 #[function_component]
@@ -33,18 +33,15 @@ pub fn ChessBoard(props: &Props) -> Html {
 
                                 let drop_piece = {
                                     let selected_piece_index = selected_piece_index.clone();
-                                    let board = *board;
+                                    let on_piece_drop = on_piece_drop.clone();
                                     Callback::from(move |_| {
-                                        if let Some(new_index) = *selected_piece_index {
-                                            let mut board = board;
-                                            board[index] = board[new_index];
-                                        }
+                                        on_piece_drop.emit((*selected_piece_index,index));
                                     })
                                 };
 
                                 let piece = match board[index] {
                                     None => return html!{ <img class={classes!(format!("flex-1 {bg_class}"))}
-                                                        ondrop={drop_piece}
+                                                        ondrop={&drop_piece}
                                                         ondragover={Callback::from(|e: DragEvent| e.prevent_default())}
                                                         src="" /> },
                                     Some(piece) => piece
@@ -81,7 +78,7 @@ pub fn ChessBoard(props: &Props) -> Html {
                                 html!{ <img class={classes!(format!("flex-1 {bg_class} cursor-pointer"))} 
                                         draggable="true"
                                         ondragstart={&determine_dragged_item}
-                                        ondrop={drop_piece}
+                                        ondrop={&drop_piece}
                                         ondragover={Callback::from(|e: DragEvent| e.prevent_default())}
                                         src={img_url} /> }
 

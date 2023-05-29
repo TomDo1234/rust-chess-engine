@@ -1,6 +1,6 @@
 {
   "build": {
-    "beforeBuildCommand": "cd frontend && trunk build --release",
+    "beforeBuildCommand": "cd frontend && tailwindcss && trunk build --release",
     "beforeDevCommand": "cd frontend && trunk serve --port 8000",
     "devPath": "http://localhost:8000",
     "distDir": "../frontend/dist",

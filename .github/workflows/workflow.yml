@@ -32,16 +32,16 @@ jobs:
 
       - name: Set platform variable
         run: |
-          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+          if [[ "${{ matrix.platform }}" == "macos-latest" ]]; then
             echo "::set-env name=TRUNK_RELEASE::trunk-x86_64-apple-darwin.tar.gz"
-          elif [[ "${{ matrix.os }}" == "ubuntu-20.04" ]]; then
+          elif [[ "${{ matrix.platform }}" == "ubuntu-20.04" ]]; then
             echo "::set-env name=TRUNK_RELEASE::trunk-x86_64-unknown-linux-gnu.tar.gz"
           fi
 
       - name: Install trunk and tailwindcss
         run: |
           npm i -g tailwindcss
-          TRUNK_RELEASE="${{env.TRUNK_RELEASE}}""
+          TRUNK_RELEASE="${{env.TRUNK_RELEASE}}"
           wget -qO- https://github.com/thedodd/trunk/releases/download/v0.16.0/$TRUNK_RELEASE | tar -xzf-
           chmod +x trunk
           mv trunk frontend

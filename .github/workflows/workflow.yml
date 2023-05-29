@@ -61,6 +61,9 @@ jobs:
           $fullPath = Join-Path -Path (Get-Location) -ChildPath $relativePath
           $env:Path += ";" + $fullPath
           rustup target add wasm32-unknown-unknown
+          $env:Path
+          trunk 
+          tailwindcss
 
       - name: Build and Release
         uses: tauri-apps/tauri-action@v0

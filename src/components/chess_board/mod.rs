@@ -30,26 +30,29 @@ pub fn ChessBoard(props: &Props) -> Html {
                                     Some(piece) => piece
                                 };
 
-                                if piece.color == Color::White {
+                                let img_url = if piece.color == Color::White {
                                     match piece.piece_type {
-                                        PieceType::Pawn => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/white_pawn.svg" /> },
-                                        PieceType::Knight => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/white_knight.svg" /> },
-                                        PieceType::Bishop => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/white_bishop.svg" /> },
-                                        PieceType::Rook => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/white_rook.svg" /> },
-                                        PieceType::Queen => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/white_queen.svg" /> },
-                                        PieceType::King => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/white_king.svg" /> },
+                                        PieceType::Pawn => "images/white_pawn.svg",
+                                        PieceType::Knight => "images/white_knight.svg",
+                                        PieceType::Bishop => "images/white_bishop.svg",
+                                        PieceType::Rook => "images/white_rook.svg",
+                                        PieceType::Queen => "images/white_queen.svg",
+                                        PieceType::King => "images/white_king.svg",
                                     }
                                 }
                                 else {
                                     match piece.piece_type {
-                                        PieceType::Pawn => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/black_pawn.svg" /> },
-                                        PieceType::Knight => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/black_knight.svg" /> },
-                                        PieceType::Bishop => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/black_bishop.svg" /> },
-                                        PieceType::Rook => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/black_rook.svg" /> },
-                                        PieceType::Queen => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/black_queen.svg" /> },
-                                        PieceType::King => html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="images/black_king.svg" /> },
+                                        PieceType::Pawn => "images/black_pawn.svg",
+                                        PieceType::Knight => "images/black_knight.svg",
+                                        PieceType::Bishop => "images/black_bishop.svg",
+                                        PieceType::Rook => "images/black_rook.svg",
+                                        PieceType::Queen => "images/black_queen.svg",
+                                        PieceType::King => "images/black_king.svg",
                                     }
-                                }
+                                };
+
+                                html!{ <img class={classes!(format!("flex-1 {bg_class} cursor-pointer"))} src={img_url} /> }
+
                             }).collect::<Html>()
                         }
                     </div>

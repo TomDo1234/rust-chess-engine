@@ -128,7 +128,7 @@ const BLACK_KING: Piece = Piece {
 };
 
 impl Piece {
-    fn get_moves(&self,board: &[Option<Piece> ; 64]) -> Result<Vec<i8>,ChessEngineError> {
+    pub fn get_moves(&self,board: &[Option<Piece> ; 64]) -> Result<Vec<i8>,ChessEngineError> {
         let position: Option<usize> = board.iter().position(|r| match r {
             None => false,
             Some(r) => ptr::eq(r,self) //checking if the actual memory address is equal
@@ -449,7 +449,7 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
 mod tests {
     use std::collections::HashMap;
 
-    use crate::{parse_fen, calculate_position,chess_engine::{PieceType, transposition_table::{ZobristHash}}};
+    use crate::{parse_fen,chess_engine::{PieceType, transposition_table::{ZobristHash}, calculate_position}};
 
     #[test]
     fn test_simple_take() {

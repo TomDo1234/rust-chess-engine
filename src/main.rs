@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use crate::{chess_engine::{parse_fen, calculate_position, transposition_table::ZobristHash}, components::chess_board::ChessBoard};
+use crate::{chess_engine::{parse_fen}, components::chess_board::ChessBoard};
 mod chess_engine;
 mod components;
 
@@ -23,10 +21,7 @@ fn App() -> Html {
             let input = target.unchecked_into::<HtmlInputElement>();
             let value = input.value();
             log!(value.clone());
-            let (result_board,color_to_play) = parse_fen(&value.clone() /*&fen_input.trim() */);
-            let mut transposition_table: HashMap<u64,i32> = HashMap::new();
-            let (best_move_piece_1,best_move_1,max_1) = calculate_position(&result_board,color_to_play,4,1,0,999,-999,&ZobristHash::new(),&mut transposition_table);
-            log!(format!("{:?} {} {}",best_move_piece_1,best_move_1,max_1));
+            let (result_board,_) = parse_fen(&value.clone() /*&fen_input.trim() */);
             board.set(result_board);
         })
     };
@@ -37,9 +32,16 @@ fn App() -> Html {
             let mut new_board = *board;
             let (from,to) = from_and_to;
             if let Some(from) = from {
-                new_board[to] = new_board[from];
-                new_board[from] = None;
-                board.set(new_board);
+                if let Some(moved_piece) = &new_board[from] {
+                    let movement = to as i8 - from as i8;
+                    if let Ok(moves) = moved_piece.get_moves(&new_board) {
+                        if moves.contains(&movement) {
+                            new_board[to] = new_board[from];
+                            new_board[from] = None;
+                            board.set(new_board);
+                        }
+                    }
+                }
             }
         })
     };

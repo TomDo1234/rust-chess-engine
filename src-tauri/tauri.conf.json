@@ -1,9 +1,10 @@
 {
   "build": {
-    "beforeBuildCommand": "pnpm run build",
-    "beforeDevCommand": "pnpm run dev",
-    "devPath": "localhost:8080",
-    "distDir": "../dist"
+    "beforeBuildCommand": "cd frontend && trunk build --release",
+    "beforeDevCommand": "cd frontend && trunk serve",
+    "devPath": "http://localhost:8080/",
+    "distDir": "../frontend/dist",
+    "withGlobalTauri": true
   },
   "package": {
     "productName": "Tom Do Chess Engine",

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{chess_engine::{parse_fen, calculate_position, Color, transposition_table::ZobristHash, PieceType}, components::chess_board::ChessBoard};
+use crate::{chess_engine::{parse_fen, calculate_position, Color, transposition_table::ZobristHash}, components::chess_board::ChessBoard};
 mod chess_engine;
 mod components;
 

@@ -30,8 +30,8 @@ jobs:
       - name: Install trunk
         run: |
           wget -qO- https://github.com/thedodd/trunk/releases/download/v0.16.0/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf-
+          chmod +x trunk
           mv trunk /usr/local/bin/
-          echo $PATH
           trunk
       - name: Build and Release
         uses: tauri-apps/tauri-action@v0

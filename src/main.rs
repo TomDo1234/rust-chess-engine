@@ -1,4 +1,6 @@
-use crate::{chess_engine::{parse_fen}, components::chess_board::ChessBoard};
+use std::collections::HashMap;
+
+use crate::{chess_engine::{parse_fen, calculate_position, Color, transposition_table::ZobristHash}, components::chess_board::ChessBoard};
 mod chess_engine;
 mod components;
 
@@ -48,11 +50,14 @@ fn App() -> Html {
                 Ok(moves) => moves,
                 Err(_) => return
             };
-            
+
             if moves.contains(&movement) {
                 new_board[to] = new_board[from];
                 new_board[from] = None;
                 board.set(new_board);
+
+                let mut transposition_table: HashMap<u64, i32> = HashMap::new();
+                let (best_move_piece,best_move,_) = calculate_position(&new_board,Color::Black,4,1,0,999,-999,&ZobristHash::new(),&mut transposition_table);
             }
         })
     };

@@ -1,4 +1,6 @@
-use yew::{function_component, Properties, Html, html, classes};
+use web_sys::DragEvent;
+use yew::{function_component, Properties, Html, html, classes, Callback, use_state, UseStateHandle};
+use gloo::console::log;
 
 use crate::chess_engine::{Piece,Color, PieceType};
 
@@ -10,6 +12,9 @@ pub struct Props {
 #[function_component]
 pub fn ChessBoard(props: &Props) -> Html {
     let Props { board } = props;
+
+    let selected_piece_index: UseStateHandle<Option<usize>> = use_state(|| None);
+
     html! {
         <div class={classes!("flex flex-col w-[500px] h-[500px]".to_owned())} >
             {
@@ -25,8 +30,22 @@ pub fn ChessBoard(props: &Props) -> Html {
                                     _ => ""
                                 };
 
+                                let drop_piece = {
+                                    let selected_piece_index = selected_piece_index.clone();
+                                    let board = *board;
+                                    Callback::from(move |e: DragEvent| {
+                                        if let Some(new_index) = *selected_piece_index {
+                                            let mut board = board;
+                                            board[index] = board[new_index];
+                                        }
+                                    })
+                                };
+
                                 let piece = match board[index] {
-                                    None => return html!{ <img class={classes!(format!("flex-1 {bg_class}"))} src="" /> },
+                                    None => return html!{ <img class={classes!(format!("flex-1 {bg_class}"))}
+                                                        ondrop={drop_piece}
+                                                        ondragover={Callback::from(|e: DragEvent| e.prevent_default())}
+                                                        src="" /> },
                                     Some(piece) => piece
                                 };
 
@@ -51,7 +70,19 @@ pub fn ChessBoard(props: &Props) -> Html {
                                     }
                                 };
 
-                                html!{ <img class={classes!(format!("flex-1 {bg_class} cursor-pointer"))} src={img_url} /> }
+                                let determine_dragged_item = {
+                                    let selected_piece_index = selected_piece_index.clone();
+                                    Callback::from(move |_| {
+                                        selected_piece_index.set(Some(index));
+                                    })
+                                };
+
+                                html!{ <img class={classes!(format!("flex-1 {bg_class} cursor-pointer"))} 
+                                        draggable="true"
+                                        ondragstart={&determine_dragged_item}
+                                        ondrop={drop_piece}
+                                        ondragover={Callback::from(|e: DragEvent| e.prevent_default())}
+                                        src={img_url} /> }
 
                             }).collect::<Html>()
                         }

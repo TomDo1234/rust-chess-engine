@@ -8,7 +8,7 @@ use chess_engine::Piece;
 use wasm_bindgen::JsCast;
 use yew::{prelude::*};
 
-use gloo::console::log;
+use gloo::{console::log, timers::callback::Timeout};
 use web_sys::HtmlInputElement;
 
 fn computer_moves(board_state_hook: UseStateHandle<[Option<Piece>; 64]>,mut new_board: [Option<Piece>; 64]) {
@@ -34,11 +34,13 @@ fn App() -> Html {
             //Wait for it to be visually noticable that the component has rerendered
             let whos_move = whos_move.clone();
             let board_state_hook = board.clone();
-            match *whos_move {
-                Color::Black => {computer_moves(board_state_hook, *board); whos_move.set(Color::White)},
-                Color::White => ()
-            };
-            || ()
+            let timeout = Timeout::new(50,move || {
+                match *whos_move {
+                    Color::Black => {computer_moves(board_state_hook, *board); whos_move.set(Color::White)},
+                    Color::White => ()
+                };
+            });
+            timeout.forget();
         },whos_move);
     }
 

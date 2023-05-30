@@ -370,7 +370,6 @@ pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
         None => Color::White
     };
 
-
     for (rank, fen_rank) in fen_board_part.split('/').enumerate() {
         for (index,c) in fen_rank.chars().enumerate() {
             match c {
@@ -388,7 +387,16 @@ pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
                             'n' => Some(WHITE_KNIGHT),
                             'b' => Some(WHITE_BISHOP),
                             'q' => Some(WHITE_QUEEN),
-                            'k' => Some(WHITE_KING),
+                            'k' => {
+                                let mut king = WHITE_KING.clone();
+                                if rank * 8 + offset + index == 4 {
+                                    Some(king)
+                                }
+                                else {
+                                    king.has_moved = true;
+                                    Some(king)
+                                }
+                            },
                             _ => panic!("Invalid character in FEN string {c}"),
                         }
                     }
@@ -399,7 +407,16 @@ pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
                             'n' => Some(BLACK_KNIGHT),
                             'b' => Some(BLACK_BISHOP),
                             'q' => Some(BLACK_QUEEN),
-                            'k' => Some(BLACK_KING),
+                            'k' => {
+                                let mut king = BLACK_KING.clone();
+                                if rank * 8 + offset + index == 4 {
+                                    Some(king)
+                                }
+                                else {
+                                    king.has_moved = true;
+                                    Some(king)
+                                }
+                            },
                             _ => panic!("Invalid character in FEN string {c}"),
                         }
                     };

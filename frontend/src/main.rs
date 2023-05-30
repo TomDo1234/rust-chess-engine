@@ -14,7 +14,7 @@ use web_sys::HtmlInputElement;
 fn computer_moves(board_state_hook: UseStateHandle<[Option<Piece>; 64]>,mut new_board: [Option<Piece>; 64]) {
     log!("Thinking...");
     let mut transposition_table: HashMap<u64, i32> = HashMap::new();
-    let (best_move_original_position,best_move,_) = calculate_position(&new_board,Color::Black,4,1,0,999,-999,&ZobristHash::new(),&mut transposition_table);
+    let (best_move_original_position,best_move,_) = calculate_position(&new_board,Color::Black,5,1,0,999,-999,&ZobristHash::new(),&mut transposition_table);
 
     let new_position = best_move_original_position as i8 + best_move;
     new_board[new_position as usize] = new_board[best_move_original_position];

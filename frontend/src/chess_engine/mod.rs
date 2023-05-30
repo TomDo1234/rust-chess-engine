@@ -274,6 +274,8 @@ impl Piece {
             PieceType::King => {
                 let mut available_moves: Vec<i8> = vec![];
                 let directions: [i8;8] = [-1,1,8,-8,-9,9,7,-7];
+
+                //Normal move logic
                 for movement in directions {
                     let new_position = position as i8 + movement;
                     if new_position > 63 || new_position < 0 {
@@ -293,6 +295,17 @@ impl Piece {
                     }
                     available_moves.push(movement);
                 }
+
+                //Castling logic
+                if !self.has_moved {
+                    if board[position + 1].is_none() && board[position + 2].is_none() {
+                        available_moves.push(2);
+                    }
+                    if board[position - 1].is_none() && board[position - 2].is_none() && board[position - 3].is_none() {
+                        available_moves.push(-2);
+                    }
+                }
+
                 available_moves
             }
         };
@@ -320,15 +333,27 @@ impl Piece {
         new_board[position] = None;
 
         let moved_piece = match self.piece_type { //Mutate if its a pawn
-            PieceType::Pawn => {
-                let mut new_pawn = self.clone();
-                new_pawn.has_moved = true;
-                new_pawn
+            PieceType::Pawn | PieceType::King | PieceType::Rook => {
+                let mut new_piece = self.clone();
+                new_piece.has_moved = true;
+                new_piece
             },
             _ => *self
         };
 
         new_board[new_position] = Some(moved_piece);
+
+        //Castling Logic
+        if self.piece_type == PieceType::King {
+            if movement == 2 {
+                new_board[position + 1] = new_board[position + 3];
+                new_board[position + 3] = None;
+            }
+            else if movement == -2 {
+                new_board[position - 1] = new_board[position - 4];
+                new_board[position - 4] = None;
+            }
+        }
 
         Ok((position,piece_there_value,new_board))
     }

@@ -338,7 +338,15 @@ impl Piece {
 pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     let mut board: [Option<Piece>; 64] = [(); 64].map(|_| None);
     let mut offset = 0;
-    for (rank, fen_rank) in fen.split('/').enumerate() {
+    let fen_parts: Vec<&str> = fen.split(' ').collect();
+    let fen_board_part = fen_parts[0];
+    let fen_whos_move = match fen_parts.get(1) {
+        Some(color_char) => if *color_char == "b" { Color::Black } else { Color::White },
+        None => Color::White
+    };
+
+
+    for (rank, fen_rank) in fen_board_part.split('/').enumerate() {
         for (index,c) in fen_rank.chars().enumerate() {
             match c {
                 '1'..='8' => {
@@ -378,7 +386,7 @@ pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
         offset = 0
     }
 
-    (board,Color::White)
+    (board,fen_whos_move)
 }
 
 pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8,

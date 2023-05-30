@@ -4,17 +4,47 @@ use crate::{chess_engine::{parse_fen, calculate_position, Color, transposition_t
 mod chess_engine;
 mod components;
 
+use chess_engine::Piece;
 use wasm_bindgen::JsCast;
 use yew::{prelude::*};
+
 use gloo::console::log;
 use web_sys::HtmlInputElement;
+
+fn computer_moves(board_state_hook: UseStateHandle<[Option<Piece>; 64]>,mut new_board: [Option<Piece>; 64]) {
+    log!("Thinking...");
+    let mut transposition_table: HashMap<u64, i32> = HashMap::new();
+    let (best_move_original_position,best_move,_) = calculate_position(&new_board,Color::Black,4,1,0,999,-999,&ZobristHash::new(),&mut transposition_table);
+
+    let new_position = best_move_original_position as i8 + best_move;
+    new_board[new_position as usize] = new_board[best_move_original_position];
+    new_board[best_move_original_position] = None;
+    board_state_hook.set(new_board);
+}
 
 #[function_component]
 fn App() -> Html {
     let board = use_state(|| parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR").0);
+    let whos_move = use_state(|| Color::White);
+
+    { //Closure so useEffect works
+        let whos_move = whos_move.clone();
+        let board = board.clone();
+        use_effect_with_deps(move |whos_move| { 
+            //Wait for it to be visually noticable that the component has rerendered
+            let whos_move = whos_move.clone();
+            let board_state_hook = board.clone();
+            match *whos_move {
+                Color::Black => {computer_moves(board_state_hook, *board); whos_move.set(Color::White)},
+                Color::White => ()
+            };
+            || ()
+        },whos_move);
+    }
 
     let submit_fen = {
         let board = board.clone();
+        let whos_move = whos_move.clone();
         Callback::from(move |event: KeyboardEvent| {
             if event.key() != "Enter".to_owned() {
                 return;
@@ -23,13 +53,15 @@ fn App() -> Html {
             let input = target.unchecked_into::<HtmlInputElement>();
             let value = input.value();
             log!(value.clone());
-            let (result_board,_) = parse_fen(&value.clone() /*&fen_input.trim() */);
+            let (result_board,whos_move_from_fen) = parse_fen(&value.clone().trim());
             board.set(result_board);
+            whos_move.clone().set(whos_move_from_fen);
         })
     };
 
     let on_piece_drop = {
         let board = board.clone();
+        let whos_move = whos_move.clone();
         Callback::from(move |from_and_to: (Option<usize>,usize)| {
             let new_board = *board;
             let (from,to) = from_and_to;
@@ -52,21 +84,20 @@ fn App() -> Html {
             };
 
             if moves.contains(&movement) {
-                let mut new_board = match moved_piece.do_move(&new_board, movement) {
+                let new_board = match moved_piece.do_move(&new_board, movement) {
                     Ok((_,_,new_board)) => new_board,
                     Err(_) => return
                 };
 
                 board.set(new_board);
 
-                log!("Thinking...");
-                let mut transposition_table: HashMap<u64, i32> = HashMap::new();
-                let (best_move_original_position,best_move,_) = calculate_position(&new_board,Color::Black,4,1,0,999,-999,&ZobristHash::new(),&mut transposition_table);
-
-                let new_position = best_move_original_position as i8 + best_move;
-                new_board[new_position as usize] = new_board[best_move_original_position];
-                new_board[best_move_original_position] = None;
-                board.set(new_board);
+                if *whos_move == Color::Black {
+                    whos_move.set(Color::White);
+                }
+                else {
+                    whos_move.set(Color::Black);
+                }
+                
             }
         })
     };

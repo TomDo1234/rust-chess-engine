@@ -206,7 +206,7 @@ impl Piece {
                         if new_position > 63 || new_position < 0 {
                             break;
                         }
-                        if (((position as i8 + movement) % 8) - (position % 8) as i8).abs() != i {
+                        if (((position as i8 + movement) / 8) - (position / 8) as i8).abs() != i {
                             break;
                         }
                         if let Some(piece) = &board[new_position as usize] {
@@ -431,8 +431,8 @@ pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
     (board,fen_whos_move)
 }
 
-pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8,
-                        value: i32,mut alpha: i32,mut beta: i32,zobrist_hasher: &ZobristHash,mut transposition_table: &mut HashMap<u64,i32>) -> (usize,i8,i32) {
+pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8,value: i32,mut alpha: i32,mut beta: i32,
+                        zobrist_hasher: &ZobristHash,mut transposition_table: &mut HashMap<u64,i32>) -> (usize,i8,i32) {
 
     let sign = match whos_move {
         Color::White => 1,
@@ -503,6 +503,12 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
     transposition_table.insert(hash, best_score);
 
     return (best_piece_position,best_move,best_score);
+}
+
+fn _calculate_with_iterative_deepening(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8) -> (usize,i8,i32) {
+    let mut transposition_table: HashMap<u64, i32> = HashMap::new();
+    let (best_piece_position,best_move,best_score) = calculate_position(board,whos_move,recursion_level,1,0,0,0,&ZobristHash::new(),&mut transposition_table);
+    (best_piece_position,best_move,best_score)                                        
 }
 
 #[cfg(test)]

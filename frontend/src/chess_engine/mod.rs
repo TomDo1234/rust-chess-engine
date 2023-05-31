@@ -433,7 +433,7 @@ pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
 
 pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8,value: f32,mut alpha: f32,mut beta: f32,
                         zobrist_hasher: &ZobristHash,mut transposition_table: &mut HashMap<u64,f32>,
-                        ordered_moves: Option<Vec<(usize,i8)>>) -> (usize,i8,f32,Option<Vec<(usize,i8)>>) {
+                        ordered_moves: Option<Vec<(usize,i8,f32)>>) -> (usize,i8,f32,Option<Vec<(usize,i8,f32)>>) {
 
     let sign = match whos_move {
         Color::White => 1.0,
@@ -450,108 +450,192 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
     let mut best_score: f32 = -sign * 500.0;
     let mut best_move = 0;
     let mut best_piece_position = 0;
-    let mut calculated_ordered_move_list: Vec<(usize,i8)> = vec![];
+    let mut calculated_ordered_move_list: Vec<(usize,i8,f32)> = vec![];
 
+    if ordered_moves.is_none() {
+        for square in board {
+            let piece = match square {
+                Some(piece) => piece,
+                None => continue
+            };
 
-    for square in board {
-        let piece = match square {
-            Some(piece) => piece,
-            None => continue
-        };
-
-        if piece.color != whos_move {
-            continue;
-        }
-        if let Ok(moves) = piece.get_moves(board) {
-            for movement in moves {
-                let (position,mut new_value,new_board): (usize,f32,[Option<Piece>; 64]) =  match piece.do_move(board, movement) {
-                    Ok((position,value,new_board)) => (position,value as f32,new_board),
-                    Err(_) => (0,0.0,*board)
-                };
-                new_value *= sign;
-
-                calculated_ordered_move_list.push((position,movement));
-                
-                if new_value.abs() == 255.0 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
-                    return (position,movement,new_value,None)
-                }
-                
-                if recursion_level != current_recursion {
-                    let foresight_value = calculate_position(&new_board, if whos_move == Color::White { Color::Black } else { Color::White },
-                                                recursion_level, current_recursion + 1,value + new_value as f32,alpha,
-                                                beta,zobrist_hasher,&mut transposition_table,None).2;
-                                                
-                    new_value += foresight_value;
-
-                    if whos_move == Color::White && foresight_value > alpha {
-                        alpha = new_value;
+            if piece.color != whos_move {
+                continue;
+            }
+            if let Ok(moves) = piece.get_moves(board) {
+                for movement in moves {
+                    let (position,mut new_value,new_board): (usize,f32,[Option<Piece>; 64]) =  match piece.do_move(board, movement) {
+                        Ok((position,value,new_board)) => (position,value as f32,new_board),
+                        Err(_) => (0,0.0,*board)
+                    };
+                    new_value *= sign;
+                    
+                    if new_value.abs() == 255.0 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
+                        calculated_ordered_move_list.push((position,movement,new_value));
+                        return (position,movement,new_value,None)
                     }
-                    else if whos_move == Color::Black && foresight_value < beta {
-                        beta = new_value;
+                    
+                    if recursion_level != current_recursion {
+                        let foresight_value = calculate_position(&new_board, if whos_move == Color::White { Color::Black } else { Color::White },
+                                                    recursion_level, current_recursion + 1,value + new_value as f32,alpha,
+                                                    beta,zobrist_hasher,&mut transposition_table,None).2;
+                                                    
+                        new_value += foresight_value;
+
+                        if whos_move == Color::White && new_value > alpha {
+                            alpha = new_value;
+                        }
+                        else if whos_move == Color::Black && new_value < beta {
+                            beta = new_value;
+                        }
                     }
-                }
+                    
+                    calculated_ordered_move_list.push((position,movement,new_value));
 
-                //Checking controlled Squares
-                // let mut controlled_squares = 0;
-                // for square in new_board {
-                //     let piece = match square {
-                //         Some(piece) => piece,
-                //         None => continue
-                //     };
-            
-                //     if piece.color != whos_move {
-                //         continue;
-                //     }
-
-                //     if let Ok(moves) = piece.get_moves(board) {
-                //         controlled_squares += moves.len();
-                //     }
-                // }
-                // new_value += controlled_squares as f32 * 0.3;
-                /////
+                    //Checking controlled Squares
+                    // let mut controlled_squares = 0;
+                    // for square in new_board {
+                    //     let piece = match square {
+                    //         Some(piece) => piece,
+                    //         None => continue
+                    //     };
                 
-                if new_value * sign > best_score * sign {
-                    best_score = new_value;
-                    best_move = movement;
-                    best_piece_position = position;
-                };
+                    //     if piece.color != whos_move {
+                    //         continue;
+                    //     }
 
-                if whos_move == Color::Black && best_score < beta {
-                    return (position,best_move,best_score,None)
-                }
-                else if whos_move == Color::White && best_score > alpha {
-                    return (position,best_move,best_score,None)
+                    //     if let Ok(moves) = piece.get_moves(board) {
+                    //         controlled_squares += moves.len();
+                    //     }
+                    // }
+                    // new_value += controlled_squares as f32 * 0.3;
+                    /////
+                    
+                    if new_value * sign > best_score * sign {
+                        best_score = new_value;
+                        best_move = movement;
+                        best_piece_position = position;
+                    };
+
+                    if whos_move == Color::Black && best_score < alpha {
+                        return (position,best_move,best_score,None)
+                    }
+                    else if whos_move == Color::White && best_score > beta {
+                        return (position,best_move,best_score,None)
+                    }
                 }
             }
         }
     }
+    else if let Some(ordered_moves) = ordered_moves {
+        for (position,movement,_) in ordered_moves {
+
+            let piece = match &board[position] {
+                Some(piece) => piece,
+                None => continue
+            };
+
+            let (position,mut new_value,new_board): (usize,f32,[Option<Piece>; 64]) =  match piece.do_move(board, movement) {
+                Ok((position,value,new_board)) => (position,value as f32,new_board),
+                Err(_) => (0,0.0,*board)
+            };
+            new_value *= sign;
+            
+            if new_value.abs() == 255.0 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
+                calculated_ordered_move_list.push((position,movement,new_value));
+                return (position,movement,new_value,None)
+            }
+            
+            if recursion_level != current_recursion {
+                let foresight_value = calculate_position(&new_board, if whos_move == Color::White { Color::Black } else { Color::White },
+                                            recursion_level, current_recursion + 1,value + new_value as f32,alpha,
+                                            beta,zobrist_hasher,&mut transposition_table,None).2;
+                                            
+                new_value += foresight_value;
+
+                if whos_move == Color::White && new_value > alpha {
+                    alpha = new_value;
+                }
+                else if whos_move == Color::Black && new_value < beta {
+                    beta = new_value;
+                }
+            }
+
+            calculated_ordered_move_list.push((position,movement,new_value));
+
+            //Checking controlled Squares
+            // let mut controlled_squares = 0;
+            // for square in new_board {
+            //     let piece = match square {
+            //         Some(piece) => piece,
+            //         None => continue
+            //     };
+        
+            //     if piece.color != whos_move {
+            //         continue;
+            //     }
+
+            //     if let Ok(moves) = piece.get_moves(board) {
+            //         controlled_squares += moves.len();
+            //     }
+            // }
+            // new_value += controlled_squares as f32 * 0.3;
+            /////
+            
+            if new_value * sign > best_score * sign {
+                best_score = new_value;
+                best_move = movement;
+                best_piece_position = position;
+            };
+
+            if whos_move == Color::Black && best_score < alpha {
+                return (position,best_move,best_score,None)
+            }
+            else if whos_move == Color::White && best_score > beta {
+                return (position,best_move,best_score,None)
+            }
+
+        }
+    }
 
     transposition_table.insert(hash, best_score);
+
+    if current_recursion == 1 {
+        calculated_ordered_move_list.sort_by(|a, b| b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal));
+
+        if whos_move == Color::White {
+            calculated_ordered_move_list.reverse();
+        }
+    }
+
+
 
     return (best_piece_position,best_move,best_score,Some(calculated_ordered_move_list));
 }
 
 pub fn calculate_with_iterative_deepening(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8) -> (usize,i8,f32) {
 
-    // let mut ordered_moves: Option<Vec<(usize,i8)>> = None;
-    // for i in 1..=recursion_level {
-    //     let mut transposition_table: HashMap<u64, f32> = HashMap::new();
-    //     let (_,_,_,moves) = calculate_position(board,whos_move,i,1,0.0,999.0
-    //                                                         ,-999.0,&ZobristHash::new(),&mut transposition_table,ordered_moves.clone());
+    let mut ordered_moves: Option<Vec<(usize,i8,f32)>> = None;
+    for i in 1..=recursion_level {
+        let mut transposition_table: HashMap<u64, f32> = HashMap::new();
+        let (best_piece_position,best_move,best_score,moves) = calculate_position(board,whos_move,i,1,0.0,-999.0
+                                                            ,999.0,&ZobristHash::new(),&mut transposition_table,ordered_moves.clone());
 
-    //     ordered_moves = moves;
-    // }
+        ordered_moves = moves;
 
-    let mut transposition_table: HashMap<u64, f32> = HashMap::new();
-    let (best_piece_position,best_move,best_score,_) = calculate_position(board,whos_move,recursion_level,1,0.0,999.0
-                                                        ,-999.0,&ZobristHash::new(),&mut transposition_table,None);
+        if i == recursion_level {
+            return (best_piece_position,best_move,best_score) 
+        }    
+    }   
 
-    (best_piece_position,best_move,best_score)                                        
+    (0,0,0.0) //Just in case some freaking how it doesnt return                                  
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{parse_fen,chess_engine::calculate_with_iterative_deepening};
+    use std::collections::HashMap;
+
+    use crate::{parse_fen,chess_engine::{calculate_with_iterative_deepening, calculate_position, transposition_table::ZobristHash}};
 
     #[test]
     fn test_simple_take() {
@@ -589,7 +673,7 @@ mod tests {
     }
 
     #[test]
-    fn test_two_move() {
+    fn test_two_move_1() {
         let (board,color_to_play) = parse_fen("2r4k/6pp/8/4N3/8/1Q6/B7/4K3");
         let (best_move_piece_1,best_move_1,_) = calculate_with_iterative_deepening(&board,color_to_play,5);
         assert_eq!((best_move_piece_1,best_move_1), (28,-6));

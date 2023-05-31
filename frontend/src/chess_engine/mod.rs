@@ -432,7 +432,8 @@ pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
 }
 
 pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8,current_recursion: u8,value: f32,mut alpha: f32,mut beta: f32,
-                        zobrist_hasher: &ZobristHash,mut transposition_table: &mut HashMap<u64,f32>) -> (usize,i8,f32) {
+                        zobrist_hasher: &ZobristHash,mut transposition_table: &mut HashMap<u64,f32>,
+                        ordered_moves: Option<Vec<(usize,i8)>>) -> (usize,i8,f32,Option<Vec<(usize,i8)>>) {
 
     let sign = match whos_move {
         Color::White => 1.0,
@@ -442,13 +443,16 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
     //Checking Transposition table 
     let hash = zobrist_hasher.hash(board,current_recursion);
     if let Some(transposition_table_value) = transposition_table.get(&hash) {
-        return (0,0,*transposition_table_value);
+        return (0,0,*transposition_table_value,None);
     }
     /////
 
     let mut best_score: f32 = -sign * 500.0;
     let mut best_move = 0;
     let mut best_piece_position = 0;
+    let mut calculated_ordered_move_list: Vec<(usize,i8)> = vec![];
+
+
     for square in board {
         let piece = match square {
             Some(piece) => piece,
@@ -466,14 +470,16 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
                 };
                 new_value *= sign;
 
+                calculated_ordered_move_list.push((position,movement));
                 
                 if new_value.abs() == 255.0 { //if king stop immediately, prevents it from thinking it can kill other king next turn to equalize
-                    return (position,movement,new_value)
+                    return (position,movement,new_value,None)
                 }
                 
                 if recursion_level != current_recursion {
                     let foresight_value = calculate_position(&new_board, if whos_move == Color::White { Color::Black } else { Color::White },
-                                                recursion_level, current_recursion + 1,value + new_value as f32,alpha,beta,zobrist_hasher,&mut transposition_table).2;
+                                                recursion_level, current_recursion + 1,value + new_value as f32,alpha,
+                                                beta,zobrist_hasher,&mut transposition_table,None).2;
                                                 
                     new_value += foresight_value;
 
@@ -511,10 +517,10 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
                 };
 
                 if whos_move == Color::Black && best_score < beta {
-                    return (position,best_move,best_score)
+                    return (position,best_move,best_score,None)
                 }
                 else if whos_move == Color::White && best_score > alpha {
-                    return (position,best_move,best_score)
+                    return (position,best_move,best_score,None)
                 }
             }
         }
@@ -522,18 +528,30 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
 
     transposition_table.insert(hash, best_score);
 
-    return (best_piece_position,best_move,best_score);
+    return (best_piece_position,best_move,best_score,Some(calculated_ordered_move_list));
 }
 
-fn _calculate_with_iterative_deepening(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8) -> (usize,i8,f32) {
+pub fn calculate_with_iterative_deepening(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8) -> (usize,i8,f32) {
+
+    // let mut ordered_moves: Option<Vec<(usize,i8)>> = None;
+    // for i in 1..=recursion_level {
+    //     let mut transposition_table: HashMap<u64, f32> = HashMap::new();
+    //     let (_,_,_,moves) = calculate_position(board,whos_move,i,1,0.0,999.0
+    //                                                         ,-999.0,&ZobristHash::new(),&mut transposition_table,ordered_moves.clone());
+
+    //     ordered_moves = moves;
+    // }
+
     let mut transposition_table: HashMap<u64, f32> = HashMap::new();
-    let (best_piece_position,best_move,best_score) = calculate_position(board,whos_move,recursion_level,1,0.0,999.0,-999.0,&ZobristHash::new(),&mut transposition_table);
+    let (best_piece_position,best_move,best_score,_) = calculate_position(board,whos_move,recursion_level,1,0.0,999.0
+                                                        ,-999.0,&ZobristHash::new(),&mut transposition_table,None);
+
     (best_piece_position,best_move,best_score)                                        
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{parse_fen,chess_engine::{_calculate_with_iterative_deepening as calculate_with_iterative_deepening}};
+    use crate::{parse_fen,chess_engine::calculate_with_iterative_deepening};
 
     #[test]
     fn test_simple_take() {

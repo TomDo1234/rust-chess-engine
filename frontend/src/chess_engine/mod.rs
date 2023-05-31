@@ -389,7 +389,7 @@ pub fn parse_fen(fen: &str) -> ([Option<Piece>; 64],Color) {
                             'q' => Some(WHITE_QUEEN),
                             'k' => {
                                 let mut king = WHITE_KING.clone();
-                                if rank * 8 + offset + index == 4 {
+                                if (rank * 8 + offset + index) % 8 == 4 {
                                     Some(king)
                                 }
                                 else {

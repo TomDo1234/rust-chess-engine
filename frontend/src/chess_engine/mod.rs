@@ -633,9 +633,8 @@ pub fn calculate_with_iterative_deepening(board: &[Option<Piece> ; 64],whos_move
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
 
-    use crate::{parse_fen,chess_engine::{calculate_with_iterative_deepening, calculate_position, transposition_table::ZobristHash}};
+    use crate::{parse_fen,chess_engine::calculate_with_iterative_deepening};
 
     #[test]
     fn test_simple_take() {

@@ -282,10 +282,10 @@ impl Piece {
                         continue;
                     }
                     if movement.abs() == 1 && (new_position / 8) != (position / 8) as i8 {
-                        break;
+                        continue;
                     }
                     else if movement.abs() != 1  && ((new_position / 8) - (position / 8) as i8).abs() != 1 {
-                        break;
+                        continue;
                     }
                     if let Some(piece) = &board[new_position as usize] {
                         if piece.color != self.color {

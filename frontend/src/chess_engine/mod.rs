@@ -324,7 +324,7 @@ impl Piece {
         };
         let new_position = (position as i8 + movement) as usize;
 
-        let piece_there_value = match &board[new_position] {
+        let mut piece_there_value = match &board[new_position] {
             None => 0,
             Some(piece) => piece.value,
         };
@@ -352,6 +352,13 @@ impl Piece {
             else if movement == -2 {
                 new_board[position - 1] = new_board[position - 4];
                 new_board[position - 4] = None;
+            }
+        }
+        else if self.piece_type == PieceType::Pawn && (new_position / 8 == 0 || new_position / 8 == 7) {
+            piece_there_value += 8;
+            new_board[new_position] = match self.color {
+                Color::White => Some(WHITE_QUEEN),
+                Color::Black => Some(BLACK_QUEEN)
             }
         }
 
@@ -572,7 +579,7 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
     }
 
     //Checking controlled Squares
-    best_score += sign * board_control as f32 * 0.1;
+    best_score += sign * board_control as f32 * 0.04;
     /////
 
     return (best_piece_position,best_move,best_score,Some(calculated_ordered_move_list));

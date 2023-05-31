@@ -451,7 +451,7 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
     let mut best_move = 0;
     let mut best_piece_position = 0;
     let mut calculated_ordered_move_list: Vec<(usize,i8,f32)> = vec![];
-
+    let mut board_control = 0;
     if ordered_moves.is_none() {
         for square in board {
             let piece = match square {
@@ -463,6 +463,7 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
                 continue;
             }
             if let Ok(moves) = piece.get_moves(board) {
+                board_control += moves.len();
                 for movement in moves {
                     let (position,mut new_value,new_board): (usize,f32,[Option<Piece>; 64]) =  match piece.do_move(board, movement) {
                         Ok((position,value,new_board)) => (position,value as f32,new_board),
@@ -491,25 +492,6 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
                     }
                     
                     calculated_ordered_move_list.push((position,movement,new_value));
-
-                    //Checking controlled Squares
-                    // let mut controlled_squares = 0;
-                    // for square in new_board {
-                    //     let piece = match square {
-                    //         Some(piece) => piece,
-                    //         None => continue
-                    //     };
-                
-                    //     if piece.color != whos_move {
-                    //         continue;
-                    //     }
-
-                    //     if let Ok(moves) = piece.get_moves(board) {
-                    //         controlled_squares += moves.len();
-                    //     }
-                    // }
-                    // new_value += controlled_squares as f32 * 0.3;
-                    /////
                     
                     if new_value * sign > best_score * sign {
                         best_score = new_value;
@@ -562,25 +544,6 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
             }
 
             calculated_ordered_move_list.push((position,movement,new_value));
-
-            //Checking controlled Squares
-            // let mut controlled_squares = 0;
-            // for square in new_board {
-            //     let piece = match square {
-            //         Some(piece) => piece,
-            //         None => continue
-            //     };
-        
-            //     if piece.color != whos_move {
-            //         continue;
-            //     }
-
-            //     if let Ok(moves) = piece.get_moves(board) {
-            //         controlled_squares += moves.len();
-            //     }
-            // }
-            // new_value += controlled_squares as f32 * 0.3;
-            /////
             
             if new_value * sign > best_score * sign {
                 best_score = new_value;
@@ -608,7 +571,9 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
         }
     }
 
-
+    //Checking controlled Squares
+    best_score += sign * board_control as f32 * 0.1;
+    /////
 
     return (best_piece_position,best_move,best_score,Some(calculated_ordered_move_list));
 }

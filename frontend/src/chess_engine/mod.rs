@@ -81,7 +81,7 @@ const WHITE_QUEEN: Piece = Piece {
 const WHITE_KING: Piece = Piece {
     color: Color::White,
     piece_type: PieceType::King,
-    value: 255,
+    value: 205,
     has_moved: false
 };
 
@@ -123,7 +123,7 @@ const BLACK_QUEEN: Piece = Piece {
 const BLACK_KING: Piece = Piece {
     color: Color::Black,
     piece_type: PieceType::King,
-    value: 255,
+    value: 205,
     has_moved: false
 };
 
@@ -588,10 +588,12 @@ pub fn calculate_position(board: &[Option<Piece> ; 64],whos_move: Color,recursio
 pub fn calculate_with_iterative_deepening(board: &[Option<Piece> ; 64],whos_move: Color,recursion_level: u8) -> (usize,i8,f32) {
 
     let mut ordered_moves: Option<Vec<(usize,i8,f32)>> = None;
+    let alpha = -999.0;
+    let beta = 999.0;
     for i in 1..=recursion_level {
         let mut transposition_table: HashMap<u64, f32> = HashMap::new();
-        let (best_piece_position,best_move,best_score,moves) = calculate_position(board,whos_move,i,1,0.0,-999.0
-                                                            ,999.0,&ZobristHash::new(),&mut transposition_table,ordered_moves.clone());
+        let (best_piece_position,best_move,best_score,moves) = calculate_position(board,whos_move,i,1,0.0,alpha
+                                                            ,beta,&ZobristHash::new(),&mut transposition_table,ordered_moves.clone());
 
         ordered_moves = moves;
 
@@ -670,5 +672,12 @@ mod tests {
                 assert!(!piece.get_moves(&board).unwrap().contains(&6));
             }
         }
+    }
+
+    #[test]
+    fn test_three_move_1() {
+        let (board,color_to_play) = parse_fen("2r3k1/p4p2/3Rp2p/1p2P1pK/8/1P4P1/P3Q2P/1q6 b");
+        let (best_move_piece_1,best_move_1,_) = calculate_with_iterative_deepening(&board,color_to_play,5);
+        assert_eq!((best_move_piece_1,best_move_1), (57,-35));
     }
 }
